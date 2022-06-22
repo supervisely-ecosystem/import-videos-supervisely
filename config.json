@@ -16,7 +16,7 @@
     "project_name": ""
   },
   "task_location": "workspace_tasks",
-  "icon": "https://github.com/supervisely-ecosystem/import-videos-from-team-files/releases/download/v1.0.0/icon.png",
+  "icon": "https://github.com/supervisely-ecosystem/import-videos-supervisely/releases/download/v0.0.1/icon.png",
   "icon_cover": true,
   "icon_background": "#FFFFFF",
   "disable_stop": true,
@@ -25,5 +25,5 @@
       "files_folder"
     ]
   },
-  "poster": "https://github.com/supervisely-ecosystem/import-videos-from-team-files/releases/download/v1.0.0/poster.png"
+  "poster": "https://github.com/supervisely-ecosystem/import-videos-supervisely/releases/download/v0.0.1/poster.png"
 }
