@@ -1,0 +1,19 @@
+<sly-field title="Import settings">
+    <div class="fflex align-start" style="flex-direction: column; margin: 20px 0">
+      <sly-field 
+                   title="Project Name"
+                   description="Adjust Project Name that will be created">
+      </sly-field>
+      <el-input placeholder="Project Name" v-model="state.project_name"></el-input>
+        
+    </div>
+
+    <div class="fflex align-start">
+        <el-checkbox v-model="state.remove_source" class="mt10 mr10"></el-checkbox>
+        <sly-field class="mt20"
+                   title="Remove temporary files after successful import"
+                   description="Removes source directory from Team Files after successful import">
+        </sly-field>
+    </div>
+
+</sly-field>

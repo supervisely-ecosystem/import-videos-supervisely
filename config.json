@@ -1,0 +1,29 @@
+{
+  "name": "Import Videos",
+  "type": "app",
+  "categories": [
+    "import",
+    "videos",
+    "essentials"
+  ],
+  "description": "Import Videos without annotations to Supervisely",
+  "docker_image": "supervisely/base-py-sdk:6.25.0",
+  "main_script": "src/main.py",
+  "gui_template": "src/gui.html",
+  "modal_template": "src/modal.html",
+  "modal_template_state": {
+    "remove_source": true,
+    "project_name": ""
+  },
+  "task_location": "workspace_tasks",
+  "icon": "https://github.com/supervisely-ecosystem/import-videos-from-team-files/releases/download/v1.0.0/icon.png",
+  "icon_cover": true,
+  "icon_background": "#FFFFFF",
+  "disable_stop": true,
+  "context_menu": {
+    "target": [
+      "files_folder"
+    ]
+  },
+  "poster": "https://github.com/supervisely-ecosystem/import-videos-from-team-files/releases/download/v1.0.0/poster.png"
+}
