@@ -42,12 +42,23 @@ def import_videos(api: sly.Api, task_id: int):
                     video_info = f.convert_to_mp4(remote_video_path=video_path)
                     video_name = video_info.name
                     video_hash = video_info.hash
-
-                g.api.video.upload_hash(
-                    dataset_id=dataset_info.id,
-                    name=video_name,
-                    hash=video_hash
-                )
+                if g.IS_ON_AGENT:
+                    for remote_file_info in dir_info:
+                        if remote_file_info.name == video_name:
+                            g.api.file.download(g.TEAM_ID, remote_file_info.path, video_path)
+                            g.api.video.upload_paths(
+                                dataset_id=dataset_info.id,
+                                names=[video_name],
+                                paths=[video_path]
+                            )
+                        else:
+                            sly.logger.warn(f"Couldn't find {remote_file_info.name}")
+                else:
+                    g.api.video.upload_hash(
+                        dataset_id=dataset_info.id,
+                        name=video_name,
+                        hash=video_hash
+                    )
             except Exception as ex:
                 sly.logger.warn(ex)
 
