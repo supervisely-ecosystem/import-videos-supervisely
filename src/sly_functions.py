@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-# from moviepy.editor import VideoFileClip
+from moviepy.editor import VideoFileClip
 import supervisely as sly
 from supervisely.io.fs import (get_file_ext, get_file_name_with_ext)
 
