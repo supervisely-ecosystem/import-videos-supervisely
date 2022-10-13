@@ -44,15 +44,15 @@ def import_videos(api: sly.Api, task_id: int):
                     video_hash = video_info.hash
                 if g.IS_ON_AGENT:
                     for remote_file_info in dir_info:
-                        if remote_file_info.name == video_name:
-                            g.api.file.download(g.TEAM_ID, remote_file_info.path, video_path)
-                            g.api.video.upload_paths(
-                                dataset_id=dataset_info.id,
-                                names=[video_name],
-                                paths=[video_path]
-                            )
-                        else:
-                            sly.logger.warn(f"Couldn't find {remote_file_info.name}")
+                        if remote_file_info["name"] != video_name:
+                            continue
+                        g.api.file.download(g.TEAM_ID, remote_file_info["path"], video_path)
+                        g.api.video.upload_paths(
+                            dataset_id=dataset_info.id,
+                            names=[video_name],
+                            paths=[video_path]
+                        )
+                        break
                 else:
                     g.api.video.upload_hash(
                         dataset_id=dataset_info.id,
