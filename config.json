@@ -7,7 +7,7 @@
     "essentials"
   ],
   "description": "Import Videos without annotations to Supervisely",
-  "docker_image": "supervisely/base-py-sdk:6.35.0",
+  "docker_image": "supervisely/base-py-sdk:6.68.1",
   "main_script": "src/main.py",
   "gui_template": "src/gui.html",
   "modal_template": "src/modal.html",
@@ -20,9 +20,13 @@
   "icon_cover": true,
   "icon_background": "#FFFFFF",
   "disable_stop": true,
+  "min_agent_version": "6.7.4",
+  "min_instance_version": "6.5.46",
   "context_menu": {
+    "context_category": "Import",
     "target": [
-      "files_folder"
+      "files_folder",
+      "agent_folder"
     ]
   },
   "poster": "https://github.com/supervisely-ecosystem/import-videos-supervisely/releases/download/v0.0.1/poster.png"

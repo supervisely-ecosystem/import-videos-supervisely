@@ -51,7 +51,7 @@ def import_videos(api: sly.Api, task_id: int):
             except Exception as ex:
                 sly.logger.warn(ex)
 
-    if g.REMOVE_SOURCE:
+    if g.REMOVE_SOURCE and not g.IS_ON_AGENT:
         api.file.remove(team_id=g.TEAM_ID, path=g.INPUT_PATH)
         source_dir_name = g.INPUT_PATH.lstrip("/").rstrip("/")
         sly.logger.info(

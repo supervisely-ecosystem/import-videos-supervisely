@@ -16,15 +16,19 @@ def get_project_name_from_input_path(input_path: str) -> str:
     return os.path.basename(full_path_dir)
 
 
-def download_project(api, input_path):
-    """Download target directory from Team Files if NEED_DOWNLOAD is True."""
+def download_project(api: sly.Api, input_path):
+    """Download target directory from Team Files"""
     remote_proj_dir = input_path
-    local_save_dir = f"{g.STORAGE_DIR}{remote_proj_dir}/"
+    if api.file.is_on_agent(input_path):
+        agent_id, path_on_agent = api.file.parse_agent_id_and_path(input_path)
+        local_save_dir = f"{g.STORAGE_DIR}{path_on_agent}/"
+    else:
+        local_save_dir = f"{g.STORAGE_DIR}{remote_proj_dir}/"
+    local_save_dir = local_save_dir.replace("//", "/")
     api.file.download_directory(
         g.TEAM_ID, remote_path=remote_proj_dir, local_save_path=local_save_dir
     )
     return local_save_dir
-
 
 def convert_to_mp4(remote_video_path):
     # download from server

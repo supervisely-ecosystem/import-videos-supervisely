@@ -3,7 +3,6 @@ import sys
 from distutils.util import strtobool
 
 import supervisely as sly
-from dotenv import load_dotenv
 from fastapi import FastAPI
 from supervisely.app.fastapi import create
 from supervisely.video.video import ALLOWED_VIDEO_EXTENSIONS
@@ -16,8 +15,9 @@ print(f"App root directory: {app_root_directory}")
 sly.logger.info(f'PYTHONPATH={os.environ.get("PYTHONPATH", "")}')
 
 # order matters
-load_dotenv(os.path.join(app_root_directory, "secret_debug.env"))
-load_dotenv(os.path.join(app_root_directory, "debug.env"))
+# from dotenv import load_dotenv
+# load_dotenv(os.path.join(app_root_directory, "secret_debug.env"))
+# load_dotenv(os.path.join(app_root_directory, "debug.env"))
 
 app = FastAPI()
 
@@ -31,10 +31,7 @@ WORKSPACE_ID = int(os.environ["context.workspaceId"])
 INPUT_PATH = os.environ.get("modal.state.slyFolder", None)
 OUTPUT_PROJECT_NAME = os.environ.get("modal.state.project_name", "")
 
-# NORMALIZE_EXIF = bool(strtobool(os.getenv("modal.state.normalize_exif")))
-# REMOVE_ALPHA_CHANNEL = bool(strtobool(os.getenv("modal.state.remove_alpha_channel")))
-# CONVERT_TIFF = bool(strtobool(os.getenv("modal.state.convert_tiff")))
-# NEED_DOWNLOAD = NORMALIZE_EXIF or REMOVE_ALPHA_CHANNEL
+IS_ON_AGENT = api.file.is_on_agent(INPUT_PATH)
 REMOVE_SOURCE = bool(strtobool(os.getenv("modal.state.remove_source")))
 
 DEFAULT_DATASET_NAME = "ds0"
