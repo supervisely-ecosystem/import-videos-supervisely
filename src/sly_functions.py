@@ -1,11 +1,9 @@
 import os
+from pathlib import Path
 
 from moviepy.editor import VideoFileClip
 import supervisely as sly
-from PIL import Image
-from supervisely.io.fs import (get_file_ext, get_file_name,
-                               get_file_name_with_ext)
-from supervisely.video.import_utils import get_dataset_name
+from supervisely.io.fs import (get_file_ext, get_file_name_with_ext)
 
 import sly_globals as g
 
@@ -51,6 +49,8 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
     datasets_images_map = {}
     for file_info in dir_info:
         full_path_file = file_info["path"]
+        if g.IS_ON_AGENT:
+            agent_id, full_path_file = g.api.file.parse_agent_id_and_path(full_path_file)
         try:
             file_ext = get_file_ext(full_path_file)
             if file_ext not in g.SUPPORTED_VIDEO_EXTS:
@@ -90,3 +90,13 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
 
     datasets_names = list(datasets_images_map.keys())
     return datasets_names, datasets_images_map
+
+def get_dataset_name(file_path, default="ds0"):
+    dir_path = os.path.split(file_path)[0]
+    ds_name = default
+    path_parts = Path(dir_path).parts
+    if len(path_parts) != 1:
+        if g.IS_ON_AGENT:
+            return path_parts[-1]
+        ds_name = path_parts[1]
+    return
