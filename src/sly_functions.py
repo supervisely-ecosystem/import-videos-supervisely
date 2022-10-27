@@ -99,4 +99,4 @@ def get_dataset_name(file_path, default="ds0"):
         if g.IS_ON_AGENT:
             return path_parts[-1]
         ds_name = path_parts[1]
-    return
+    return ds_name
