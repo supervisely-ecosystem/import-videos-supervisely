@@ -31,12 +31,11 @@ TEAM_ID = int(os.environ["context.teamId"])
 WORKSPACE_ID = int(os.environ["context.workspaceId"])
 
 PROJECT_ID = int(os.environ.get("modal.state.slyProjectId", None))
-if DATASET_NAME := json.loads(os.environ.get("modal.state.datasets", None)):
-    DATASET_NAME = DATASET_NAME[0]
-
 OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
 
 IMPORT_MODE = os.environ["modal.state.importMode"]
+if IMPORT_MODE == "dataset":
+    DATASET_NAME = json.loads(os.environ["modal.state.selectedDatasets"].replace("'", '"'))[0]
 
 INPUT_PATH = os.environ.get("modal.state.slyFolder", None)
 IS_ON_AGENT = api.file.is_on_agent(INPUT_PATH)
