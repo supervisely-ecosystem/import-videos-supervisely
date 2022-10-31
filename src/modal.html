@@ -1,11 +1,13 @@
 <div>
 
     <div>
-        <el-select v-model="state.importMode">
-            <el-option key="new" label="Create new project" value="new"></el-option>
-            <el-option key="project" label="Upload to existing project" value="project"></el-option>
-            <el-option key="dataset" label="Upload to existing dataset" value="dataset"></el-option>
-        </el-select>
+        <sly-field title="Import mode" description="Select whether you want to import files to new or existing project">
+            <el-select v-model="state.importMode">
+                <el-option key="new" label="Create new project" value="new"></el-option>
+                <el-option key="project" label="Upload to existing project" value="project"></el-option>
+                <el-option key="dataset" label="Upload to existing dataset" value="dataset"></el-option>
+            </el-select>
+        </sly-field>
     </div>
 
     <div v-if="state.importMode === 'new'">
