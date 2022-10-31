@@ -1,13 +1,12 @@
 import os
 import sys
-import json
 from distutils.util import strtobool
 
 import supervisely as sly
 from fastapi import FastAPI
 from supervisely.app.fastapi import create
-from supervisely.video.video import ALLOWED_VIDEO_EXTENSIONS
 from supervisely.io.fs import mkdir
+from supervisely.video.video import ALLOWED_VIDEO_EXTENSIONS
 
 app_root_directory = os.path.dirname(os.getcwd())
 sys.path.append(app_root_directory)
@@ -16,9 +15,9 @@ print(f"App root directory: {app_root_directory}")
 sly.logger.info(f'PYTHONPATH={os.environ.get("PYTHONPATH", "")}')
 
 # order matters
-from dotenv import load_dotenv
-load_dotenv(os.path.join(app_root_directory, "import-videos-supervisely", "secret_debug.env"))
-load_dotenv(os.path.join(app_root_directory, "import-videos-supervisely", "debug.env"))
+# from dotenv import load_dotenv
+# load_dotenv(os.path.join(app_root_directory, "import-videos-supervisely", "secret_debug.env"))
+# load_dotenv(os.path.join(app_root_directory, "import-videos-supervisely", "debug.env"))
 
 app = FastAPI()
 
@@ -30,7 +29,9 @@ TASK_ID = int(os.environ["TASK_ID"])
 TEAM_ID = int(os.environ["context.teamId"])
 WORKSPACE_ID = int(os.environ["context.workspaceId"])
 
-PROJECT_ID = int(os.environ.get("modal.state.slyProjectId", None))
+if PROJECT_ID := os.environ.get("modal.state.slyProjectId", None):
+    PROJECT_ID = int(PROJECT_ID)
+
 OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
 
 IMPORT_MODE = os.environ["modal.state.importMode"]
