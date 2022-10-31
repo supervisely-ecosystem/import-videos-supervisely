@@ -1,9 +1,9 @@
 import os
 from pathlib import Path
 
-from moviepy.editor import VideoFileClip
 import supervisely as sly
-from supervisely.io.fs import (get_file_ext, get_file_name_with_ext)
+from moviepy.editor import VideoFileClip
+from supervisely.io.fs import get_file_ext, get_file_name_with_ext
 
 import sly_globals as g
 
@@ -28,6 +28,7 @@ def download_project(api: sly.Api, input_path):
     )
     return local_save_dir
 
+
 def convert_to_mp4(remote_video_path):
     # download from server
     video_name = get_file_name_with_ext(remote_video_path)
@@ -36,8 +37,8 @@ def convert_to_mp4(remote_video_path):
 
     # convert
     clip = VideoFileClip(local_video_path)
-    local_video_path = local_video_path.split('.')[0] + g.base_video_extension
-    remote_video_path = remote_video_path.split('.')[0] + g.base_video_extension
+    local_video_path = local_video_path.split(".")[0] + g.base_video_extension
+    remote_video_path = remote_video_path.split(".")[0] + g.base_video_extension
     clip.write_videofile(local_video_path)
 
     # upload && return info
@@ -50,7 +51,9 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
     for file_info in dir_info:
         full_path_file = file_info["path"]
         if g.IS_ON_AGENT:
-            agent_id, full_path_file = g.api.file.parse_agent_id_and_path(full_path_file)
+            agent_id, full_path_file = g.api.file.parse_agent_id_and_path(
+                full_path_file
+            )
         try:
             file_ext = get_file_ext(full_path_file)
             if file_ext not in g.SUPPORTED_VIDEO_EXTS:
@@ -90,6 +93,7 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
 
     datasets_names = list(datasets_images_map.keys())
     return datasets_names, datasets_images_map
+
 
 def get_dataset_name(file_path, default="ds0"):
     dir_path = os.path.split(file_path)[0]

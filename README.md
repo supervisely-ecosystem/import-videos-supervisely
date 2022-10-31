@@ -26,12 +26,26 @@ Application imports selected Videos without annotations to Supervisely.
 
 **Note:** all videos will be converted to `.mp4` format during import.
 
+
+**App updates:**
+
 🏋️ Starting from version `v1.1.3` application supports import from special directory on your local computer. It is made for Enterprise Edition customers who need to upload tens or even hundreds of gigabytes of data without using drag-ang-drop mechanism:
 
 1. Run agent on your computer where data is stored. Watch [how-to video](https://youtu.be/aO7Zc4kTrVg).
 2. Copy your data to special folder on your computer that was created by agent. Agent mounts this directory to your Supervisely instance and it becomes accessible in Team Files. Learn more [in documentation](https://github.com/supervisely/docs/blob/master/customization/agents/agent-storage/agent-storage.md). Watch [how-to video](https://youtu.be/63Kc8Xq9H0U).
 3. Go to `Team Files` -> `Supervisely Agent` and find your folder there.
 4. Right click to open context menu and start app. Now app will upload data directly from your computer to the platform.
+
+📥 Starting from version `v1.2.0` application supports import to existing projects and datasets:
+
+1. App now have 3 import modes in the modal window:
+   1. Create new project
+   2. Upload to existing project
+   3. Upload to existing dataset
+
+    ![new-modal](https://user-images.githubusercontent.com/48913536/199000700-426fbf14-dc1f-45af-885d-2fe3d0d47cb9.png)
+
+2. When uploading to existing dataset, make sure videos have unique names
 
 ## Preparation
 Directory name defines project name, subdirectories define dataset names.  

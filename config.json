@@ -12,8 +12,9 @@
   "gui_template": "src/gui.html",
   "modal_template": "src/modal.html",
   "modal_template_state": {
-    "remove_source": true,
-    "project_name": ""
+    "importMode": "new",
+    "removeSource": true,
+    "projectName": ""
   },
   "task_location": "workspace_tasks",
   "icon": "https://github.com/supervisely-ecosystem/import-videos-supervisely/releases/download/v0.0.1/icon.png",

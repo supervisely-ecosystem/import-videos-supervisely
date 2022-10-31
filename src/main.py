@@ -1,7 +1,4 @@
-import os
-
 import supervisely as sly
-
 from supervisely.app.widgets import SlyTqdm
 from supervisely.io.fs import get_file_ext
 
@@ -17,16 +14,33 @@ def import_videos(api: sly.Api, task_id: int):
     if len(dir_info) == 0:
         raise Exception(f"There are no files in selected directory: '{g.INPUT_PATH}'")
 
-    project_name = f.get_project_name_from_input_path(g.INPUT_PATH) if len(g.OUTPUT_PROJECT_NAME) == 0 else g.OUTPUT_PROJECT_NAME
+    if g.IMPORT_MODE == "new":
+        project_name = (
+            f.get_project_name_from_input_path(g.INPUT_PATH)
+            if len(g.OUTPUT_PROJECT_NAME) == 0
+            else g.OUTPUT_PROJECT_NAME
+        )
+        project = api.project.create(
+            workspace_id=g.WORKSPACE_ID,
+            name=project_name,
+            change_name_if_conflict=True,
+            type=sly.ProjectType.VIDEOS,
+        )
+    elif g.IMPORT_MODE in ["project", "dataset"]:
+        project = api.project.get_info_by_id(id=g.PROJECT_ID)
+        project_name = project.name
+
     datasets_names, datasets_videos_map = f.get_datasets_videos_map(dir_info)
 
-    project = api.project.create(
-        workspace_id=g.WORKSPACE_ID, name=project_name, change_name_if_conflict=True, type=sly.ProjectType.VIDEOS
-    )
     for dataset_name in datasets_names:
-        dataset_info = api.dataset.create(
-            project_id=project.id, name=dataset_name, change_name_if_conflict=True
-        )
+        if g.IMPORT_MODE != "dataset":
+            dataset_info = api.dataset.create(
+                project_id=project.id, name=dataset_name, change_name_if_conflict=True
+            )
+        else:
+            dataset_info = api.dataset.get_info_by_name(
+                parent_id=project.id, name=g.DATASET_NAME
+            )
 
         videos_names = datasets_videos_map[dataset_name]["video_names"]
         videos_hashes = datasets_videos_map[dataset_name]["video_hashes"]
@@ -35,7 +49,7 @@ def import_videos(api: sly.Api, task_id: int):
         for video_name, video_path, video_hash in progress_bar(
             zip(videos_names, videos_paths, videos_hashes),
             total=len(videos_hashes),
-            message="Dataset: {!r}".format(dataset_name),
+            message="Dataset: {!r}".format(dataset_info.name),
         ):
             try:
                 if get_file_ext(video_path) != g.base_video_extension:
@@ -46,18 +60,18 @@ def import_videos(api: sly.Api, task_id: int):
                     for remote_file_info in dir_info:
                         if remote_file_info["name"] != video_name:
                             continue
-                        g.api.file.download(g.TEAM_ID, remote_file_info["path"], video_path)
+                        g.api.file.download(
+                            g.TEAM_ID, remote_file_info["path"], video_path
+                        )
                         g.api.video.upload_paths(
                             dataset_id=dataset_info.id,
                             names=[video_name],
-                            paths=[video_path]
+                            paths=[video_path],
                         )
                         break
                 else:
                     g.api.video.upload_hash(
-                        dataset_id=dataset_info.id,
-                        name=video_name,
-                        hash=video_hash
+                        dataset_id=dataset_info.id, name=video_name, hash=video_hash
                     )
             except Exception as ex:
                 sly.logger.warn(ex)
