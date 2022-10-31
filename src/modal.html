@@ -1,18 +1,40 @@
 <div>
-     <div class="fflex align-start" style="flex-direction: column; margin: 0 0 20px 0">
-      <sly-field 
-                   title="Result Project Name"
-                   description="Enter project name manually (optional) or keep empty to generate it automatically">
-      </sly-field>
-      <el-input placeholder="Enter Project Name" v-model="state.project_name"></el-input>
-        
+
+    <div>
+        <el-select v-model="state.importMode">
+            <el-option key="new" label="Create new project" value="new"></el-option>
+            <el-option key="project" label="Upload to existing project" value="project"></el-option>
+            <el-option key="dataset" label="Upload to existing dataset" value="dataset"></el-option>
+        </el-select>
+    </div>
+
+    <div v-if="importMode === new">
+        <sly-field title="Result Project Name"
+            description="Enter project name manually (optional) or keep empty to generate it automatically">
+        </sly-field>
+        <el-input placeholder="Enter Project Name" v-model="state.projectName"></el-input>
+    </div>
+
+    <div v-if="importMode === project">
+        <sly-select-project :workspace-id="context.workspaceId" :project-id.sync="state.projectId"
+            :options="{availableTypes: ['videos']}"></sly-select-project>
+        <!-- <sly-field title="Result Dataset Name"
+            description="Enter dataset name manually (optional) or keep empty to generate it automatically">
+        </sly-field>
+        <el-input placeholder="Enter Dataset Name" v-model="state.datasetName"></el-input> -->
+    </div>
+
+    <div v-if="importMode === dataset">
+        <sly-select-project :workspace-id="context.workspaceId" :project-id.sync="state.projectId"
+            :options="{availableTypes: ['videos']}"></sly-select-project>
+        <sly-select-dataset :project-id="state.projectId" :datasets.sync="state.datasets"></sly-select-dataset>
     </div>
 
     <div class="fflex align-start" v-if="!state.prefNodeId">
-        <el-checkbox v-model="state.remove_source" class="mt10 mr10"></el-checkbox>
-        <sly-field class="mt20"
-                   title="Remove temporary files after successful import"
-                   description="Removes source directory from Team Files after successful import">
+        <el-checkbox v-model="state.removeSource" class="mt10 mr10"></el-checkbox>
+        <sly-field class="mt20" title="Remove temporary files after successful import"
+            description="Removes source directory from Team Files after successful import">
         </sly-field>
     </div>
+
 </div>

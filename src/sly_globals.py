@@ -15,9 +15,9 @@ print(f"App root directory: {app_root_directory}")
 sly.logger.info(f'PYTHONPATH={os.environ.get("PYTHONPATH", "")}')
 
 # order matters
-# from dotenv import load_dotenv
-# load_dotenv(os.path.join(app_root_directory, "secret_debug.env"))
-# load_dotenv(os.path.join(app_root_directory, "debug.env"))
+from dotenv import load_dotenv
+load_dotenv(os.path.join(app_root_directory, "secret_debug.env"))
+load_dotenv(os.path.join(app_root_directory, "debug.env"))
 
 app = FastAPI()
 
@@ -28,17 +28,22 @@ api = sly.Api.from_env()
 TASK_ID = int(os.environ["TASK_ID"])
 TEAM_ID = int(os.environ["context.teamId"])
 WORKSPACE_ID = int(os.environ["context.workspaceId"])
+
+PROJECT_ID = int(os.environ.get("modal.state.slyProjectId", None))
+DATASET_ID = int(os.environ.get("modal.state.slyDatasetId", None))
+
+OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
+# OUTPUT_DATASET_NAME = os.environ.get("modal.state.datasetName", None)
+
+IMPORT_MODE = os.environ["modal.state.importMode"]
+
 INPUT_PATH = os.environ.get("modal.state.slyFolder", None)
-OUTPUT_PROJECT_NAME = os.environ.get("modal.state.project_name", "")
-
 IS_ON_AGENT = api.file.is_on_agent(INPUT_PATH)
-REMOVE_SOURCE = bool(strtobool(os.getenv("modal.state.remove_source")))
+REMOVE_SOURCE = bool(strtobool(os.getenv("modal.state.removeSource")))
 
-DEFAULT_DATASET_NAME = "ds0"
 SUPPORTED_VIDEO_EXTS = ALLOWED_VIDEO_EXTENSIONS
 
 base_video_extension = '.mp4'
-
 
 STORAGE_DIR = os.path.join(app_root_directory, "debug", "data", "storage_dir")
 mkdir(STORAGE_DIR, True)
