@@ -43,9 +43,9 @@ Application imports selected Videos without annotations to Supervisely.
    2. Upload to existing project
    3. Upload to existing dataset
 
+    ![new-modal](https://user-images.githubusercontent.com/48913536/199000700-426fbf14-dc1f-45af-885d-2fe3d0d47cb9.png)
 
-
-2. When uploading to existing dataset, make sure videos have unique names.
+2. When uploading to existing dataset, make sure videos have unique names
 
 ## Preparation
 Directory name defines project name, subdirectories define dataset names.  
