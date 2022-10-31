@@ -1,6 +1,6 @@
 import os
-import ast
 import sys
+import json
 from distutils.util import strtobool
 
 import supervisely as sly
@@ -31,11 +31,8 @@ TEAM_ID = int(os.environ["context.teamId"])
 WORKSPACE_ID = int(os.environ["context.workspaceId"])
 
 PROJECT_ID = int(os.environ.get("modal.state.slyProjectId", None))
-
-DATASET_NAME = os.environ.get("modal.state.datasets", None)
-
-if DATASET_NAME := os.environ.get("modal.state.datasets", None):
-    DATASET_NAME = ast.literal_eval(DATASET_NAME)[0]
+if DATASET_NAME := json.loads(os.environ.get("modal.state.datasets", None)):
+    DATASET_NAME = DATASET_NAME[0]
 
 OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
 
