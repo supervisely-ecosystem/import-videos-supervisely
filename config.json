@@ -28,7 +28,9 @@
     "context_category": "Import",
     "target": [
       "files_folder",
-      "agent_folder"
+      "agent_folder",
+      "videos_project",
+      "videos_dataset"
     ]
   },
   "poster": "https://github.com/supervisely-ecosystem/import-videos-supervisely/releases/download/v0.0.1/poster.png"

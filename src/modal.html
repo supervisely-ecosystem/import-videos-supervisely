@@ -8,26 +8,22 @@
         </el-select>
     </div>
 
-    <div v-if="importMode === new">
+    <div v-if="state.importMode === 'new'">
         <sly-field title="Result Project Name"
             description="Enter project name manually (optional) or keep empty to generate it automatically">
         </sly-field>
         <el-input placeholder="Enter Project Name" v-model="state.projectName"></el-input>
     </div>
 
-    <div v-if="importMode === project">
-        <sly-select-project :workspace-id="context.workspaceId" :project-id.sync="state.projectId"
+    <div v-if="state.importMode === 'project'">
+        <sly-select-project :workspace-id="context.workspaceId" :project-id.sync="state.slyProjectId"
             :options="{availableTypes: ['videos']}"></sly-select-project>
-        <!-- <sly-field title="Result Dataset Name"
-            description="Enter dataset name manually (optional) or keep empty to generate it automatically">
-        </sly-field>
-        <el-input placeholder="Enter Dataset Name" v-model="state.datasetName"></el-input> -->
     </div>
 
-    <div v-if="importMode === dataset">
-        <sly-select-project :workspace-id="context.workspaceId" :project-id.sync="state.projectId"
+    <div v-if="state.importMode === 'dataset'">
+        <sly-select-project :workspace-id="context.workspaceId" :project-id.sync="state.slyProjectId"
             :options="{availableTypes: ['videos']}"></sly-select-project>
-        <sly-select-dataset :project-id="state.projectId" :datasets.sync="state.datasets"></sly-select-dataset>
+        <sly-select-dataset :project-id="state.slyProjectId" :datasets.sync="state.datasets"></sly-select-dataset>
     </div>
 
     <div class="fflex align-start" v-if="!state.prefNodeId">
@@ -36,5 +32,9 @@
             description="Removes source directory from Team Files after successful import">
         </sly-field>
     </div>
+
+    <pre>
+        {{ JSON.stringify(state, undefined, 2) }}
+    </pre>
 
 </div>
