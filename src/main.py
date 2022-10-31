@@ -41,7 +41,7 @@ def import_videos(api: sly.Api, task_id: int):
                 project_id=project.id, name=dataset_name, change_name_if_conflict=True
             )
         else:
-            dataset_info = api.dataset.get_info_by_id(id=g.DATASET_ID)
+            dataset_info = api.dataset.get_info_by_name(parent_id=project.id, name=g.DATASET_NAME)
 
         videos_names = datasets_videos_map[dataset_name]["video_names"]
         videos_hashes = datasets_videos_map[dataset_name]["video_hashes"]

@@ -30,10 +30,10 @@ TEAM_ID = int(os.environ["context.teamId"])
 WORKSPACE_ID = int(os.environ["context.workspaceId"])
 
 PROJECT_ID = int(os.environ.get("modal.state.slyProjectId", None))
-DATASET_ID = int(os.environ.get("modal.state.slyDatasetId", None))
+if DATASET_NAME := os.environ.get("modal.state.datasets", None):
+    DATASET_NAME = DATASET_NAME[0]
 
 OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
-# OUTPUT_DATASET_NAME = os.environ.get("modal.state.datasetName", None)
 
 IMPORT_MODE = os.environ["modal.state.importMode"]
 
