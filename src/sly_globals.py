@@ -1,4 +1,5 @@
 import os
+import ast
 import sys
 from distutils.util import strtobool
 
@@ -16,8 +17,8 @@ sly.logger.info(f'PYTHONPATH={os.environ.get("PYTHONPATH", "")}')
 
 # order matters
 from dotenv import load_dotenv
-load_dotenv(os.path.join(app_root_directory, "secret_debug.env"))
-load_dotenv(os.path.join(app_root_directory, "debug.env"))
+load_dotenv(os.path.join(app_root_directory, "import-videos-supervisely", "secret_debug.env"))
+load_dotenv(os.path.join(app_root_directory, "import-videos-supervisely", "debug.env"))
 
 app = FastAPI()
 
@@ -30,8 +31,11 @@ TEAM_ID = int(os.environ["context.teamId"])
 WORKSPACE_ID = int(os.environ["context.workspaceId"])
 
 PROJECT_ID = int(os.environ.get("modal.state.slyProjectId", None))
+
+DATASET_NAME = os.environ.get("modal.state.datasets", None)
+
 if DATASET_NAME := os.environ.get("modal.state.datasets", None):
-    DATASET_NAME = DATASET_NAME[0]
+    DATASET_NAME = ast.literal_eval(DATASET_NAME)[0]
 
 OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
 
@@ -45,5 +49,5 @@ SUPPORTED_VIDEO_EXTS = ALLOWED_VIDEO_EXTENSIONS
 
 base_video_extension = '.mp4'
 
-STORAGE_DIR = os.path.join(app_root_directory, "debug", "data", "storage_dir")
+STORAGE_DIR = os.path.join(app_root_directory, "import-videos-supervisely", "debug", "data", "storage_dir")
 mkdir(STORAGE_DIR, True)
