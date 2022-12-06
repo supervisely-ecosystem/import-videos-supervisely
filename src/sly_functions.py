@@ -3,7 +3,7 @@ from pathlib import Path
 
 import supervisely as sly
 from moviepy.editor import VideoFileClip
-from supervisely.io.fs import get_file_ext, get_file_name_with_ext
+from supervisely.io.fs import get_file_ext, get_file_name_with_ext, get_file_name
 
 import sly_globals as g
 
@@ -38,7 +38,10 @@ def convert_to_mp4(remote_video_path):
     # convert
     clip = VideoFileClip(local_video_path)
     local_video_path = local_video_path.split(".")[0] + g.base_video_extension
-    remote_video_path = remote_video_path.split(".")[0] + g.base_video_extension
+    remote_video_path = os.path.join(
+        os.path.dirname(remote_video_path),
+        f"{get_file_name(remote_video_path)}.{g.base_video_extension}",
+    )
     clip.write_videofile(local_video_path)
 
     # upload && return info
