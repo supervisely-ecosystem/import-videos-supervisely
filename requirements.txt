@@ -1,2 +1,2 @@
-supervisely==6.68.1
+supervisely==6.68.54
 moviepy==1.0.3
