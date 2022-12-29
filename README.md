@@ -25,6 +25,7 @@ Application imports selected Videos without annotations to Supervisely.
 **Supported video formats:** .avi, .mov, .wmv, .webm, .3gp, .mp4, .flv
 
 **Note:** all videos will be converted to `.mp4` format during import.
+🌎 Communitity version has a 300MB limitation for video size, no limits apply to Enterprise Edition 
 
 
 **App updates:**
