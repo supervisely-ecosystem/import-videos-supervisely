@@ -1,23 +1,16 @@
 import os
-import sys
 from distutils.util import strtobool
 
 import supervisely as sly
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from supervisely.app.fastapi import create
 from supervisely.io.fs import mkdir
 from supervisely.video.video import ALLOWED_VIDEO_EXTENSIONS
 
-app_root_directory = os.path.dirname(os.getcwd())
-sys.path.append(app_root_directory)
-sys.path.append(os.path.join(app_root_directory, "src"))
-print(f"App root directory: {app_root_directory}")
-sly.logger.info(f'PYTHONPATH={os.environ.get("PYTHONPATH", "")}')
-
-# order matters
-# from dotenv import load_dotenv
-# load_dotenv(os.path.join(app_root_directory, "import-videos-supervisely", "secret_debug.env"))
-# load_dotenv(os.path.join(app_root_directory, "import-videos-supervisely", "debug.env"))
+if sly.is_development():
+    load_dotenv("local.env")
+    load_dotenv(os.path.expanduser("~/supervisely.env"))
 
 app = FastAPI()
 
@@ -44,7 +37,7 @@ REMOVE_SOURCE = bool(strtobool(os.getenv("modal.state.removeSource")))
 
 SUPPORTED_VIDEO_EXTS = ALLOWED_VIDEO_EXTENSIONS
 
-base_video_extension = '.mp4'
+base_video_extension = ".mp4"
 
-STORAGE_DIR = os.path.join(app_root_directory, "import-videos-supervisely", "debug", "data", "storage_dir")
+STORAGE_DIR = os.path.join(sly.app.get_data_dir(), "storage_dir")
 mkdir(STORAGE_DIR, True)

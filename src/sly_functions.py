@@ -1,9 +1,11 @@
+import json
 import os
+import shlex
+import subprocess
 from pathlib import Path
 
 import supervisely as sly
-from moviepy.editor import VideoFileClip
-from supervisely.io.fs import get_file_ext, get_file_name_with_ext, get_file_name
+from supervisely.io.fs import get_file_ext, get_file_name, get_file_name_with_ext
 
 import sly_globals as g
 
@@ -33,19 +35,116 @@ def convert_to_mp4(remote_video_path):
     # download from server
     video_name = get_file_name_with_ext(remote_video_path)
     local_video_path = os.path.join(g.STORAGE_DIR, video_name)
-    g.api.file.download(g.TEAM_ID, remote_video_path, local_video_path)
+
+    g.api.file.download(
+        g.TEAM_ID,
+        remote_video_path,
+        local_video_path,
+    )
 
     # convert
-    clip = VideoFileClip(local_video_path)
-    local_video_path = local_video_path.split(".")[0] + g.base_video_extension
+    output_video_path = local_video_path.split(".")[0] + g.base_video_extension
     remote_video_path = os.path.join(
         os.path.dirname(remote_video_path),
         f"{get_file_name(remote_video_path)}{g.base_video_extension}",
     )
-    clip.write_videofile(local_video_path)
+
+    # read video meta_data
+    vid_info = json.loads(
+        subprocess.run(
+            shlex.split(
+                f"ffprobe -loglevel error -show_format -show_streams -of json {local_video_path}"
+            ),
+            capture_output=True,
+        ).stdout
+    )
+
+    # check codecs
+    need_video_transc = False
+    need_audio_transc = False
+    for stream in vid_info["streams"]:
+        codec_name = stream["codec_name"]
+        codec_type = stream["codec_type"]
+        if codec_type == "video":
+            if codec_name == "h264":
+                continue
+            else:
+                need_video_transc = True
+        elif codec_type == "audio":
+            if codec_name == "aac":
+                continue
+            else:
+                need_audio_transc = True
+
+    # convert videos
+    convert(
+        input_path=local_video_path,
+        output_path=output_video_path,
+        need_video_transc=need_video_transc,
+        need_audio_transc=need_audio_transc,
+    )
 
     # upload && return info
-    return g.api.file.upload(g.TEAM_ID, local_video_path, remote_video_path)
+    return g.api.file.upload(
+        g.TEAM_ID,
+        local_video_path,
+        remote_video_path,
+    )
+
+
+def convert(input_path, output_path, need_video_transc, need_audio_transc):
+    if need_video_transc and need_audio_transc:
+        subprocess.call(
+            [
+                "ffmpeg",
+                "-i",
+                f"{input_path}",
+                "-c:v",
+                "libx264",
+                "-c:a",
+                "aac",
+                f"{output_path}",
+            ]
+        )
+    elif need_video_transc:
+        subprocess.call(
+            [
+                "ffmpeg",
+                "-i",
+                f"{input_path}",
+                "-c:v",
+                "libx264",
+                "-c:a",
+                "copy",
+                f"{output_path}",
+            ]
+        )
+    elif need_audio_transc:
+        subprocess.call(
+            [
+                "ffmpeg",
+                "-i",
+                f"{input_path}",
+                "-c:v",
+                "copy",
+                "-c:a",
+                "aac",
+                f"{output_path}",
+            ]
+        )
+    else:
+        subprocess.call(
+            [
+                "ffmpeg",
+                "-i",
+                f"{input_path}",
+                "-c:v",
+                "copy",
+                "-c:a",
+                "copy",
+                f"{output_path}",
+            ]
+        )
 
 
 def get_datasets_videos_map(dir_info: list) -> tuple:
@@ -54,9 +153,7 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
     for file_info in dir_info:
         full_path_file = file_info["path"]
         if g.IS_ON_AGENT:
-            agent_id, full_path_file = g.api.file.parse_agent_id_and_path(
-                full_path_file
-            )
+            agent_id, full_path_file = g.api.file.parse_agent_id_and_path(full_path_file)
         try:
             file_ext = get_file_ext(full_path_file)
             if file_ext not in g.SUPPORTED_VIDEO_EXTS:

@@ -1,2 +1,7 @@
-supervisely==6.68.54
-moviepy==1.0.3
+supervisely==6.69.8
+
+# formatter
+black
+
+# sorter
+isort
