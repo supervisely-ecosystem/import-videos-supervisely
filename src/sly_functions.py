@@ -63,9 +63,12 @@ def convert_to_mp4(remote_video_path):
     need_video_transc = False
     need_audio_transc = False
     for stream in vid_info["streams"]:
-        codec_name = stream["codec_name"]
         codec_type = stream["codec_type"]
+        if codec_type not in ["video", "audio"]:
+            continue
+        codec_name = stream["codec_name"]
         if codec_type == "video":
+            # rotation = stream["tags"]["rotate"]
             if codec_name == "h264":
                 continue
             else:
@@ -84,11 +87,26 @@ def convert_to_mp4(remote_video_path):
         need_audio_transc=need_audio_transc,
     )
 
+    upload_progress = []
+
+    def _print_progress(monitor, upload_progress):
+        if len(upload_progress) == 0:
+            upload_progress.append(
+                sly.Progress(
+                    message="Upload {!r}".format(video_name),
+                    total_cnt=monitor.len,
+                    ext_logger=sly.logger,
+                    is_size=True,
+                )
+            )
+        upload_progress[0].set_current_value(monitor.bytes_read)
+
     # upload && return info
     return g.api.file.upload(
         g.TEAM_ID,
         local_video_path,
         remote_video_path,
+        lambda m: _print_progress(m, upload_progress),
     )
 
 
