@@ -116,7 +116,7 @@ def convert_to_mp4(remote_video_path):
     # upload && return info
     return g.api.file.upload(
         g.TEAM_ID,
-        local_video_path,
+        output_video_path,
         remote_video_path,
         lambda m: _print_progress(m, upload_progress),
     )
@@ -126,12 +126,9 @@ def convert(input_path, output_path, need_video_transc, need_audio_transc):
     video_codec = "copy"
     audio_codec = "copy"
 
-    if need_video_transc and need_audio_transc:
+    if need_video_transc:
         video_codec = "libx264"
-        audio_codec = "aac"
-    elif need_video_transc:
-        video_codec = "libx264"
-    elif need_audio_transc:
+    if need_audio_transc:
         audio_codec = "aac"
 
     subprocess.call(
