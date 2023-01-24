@@ -157,7 +157,7 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
             agent_id, full_path_file = g.api.file.parse_agent_id_and_path(full_path_file)
         try:
             file_ext = get_file_ext(full_path_file)
-            if file_ext not in g.SUPPORTED_VIDEO_EXTS:
+            if file_ext.lower() not in g.SUPPORTED_VIDEO_EXTS:
                 sly.image.validate_ext(full_path_file)
         except Exception as e:
             sly.logger.warn(
