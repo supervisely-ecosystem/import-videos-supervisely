@@ -26,8 +26,16 @@ def download_project(api: sly.Api, input_path):
     else:
         local_save_dir = f"{g.STORAGE_DIR}{remote_proj_dir}/"
     local_save_dir = local_save_dir.replace("//", "/")
+
+    sizeb = api.file.get_directory_size(team_id=g.TEAM_ID, path=remote_proj_dir)
+    progress_cb = download_progress.get_progress_cb(
+        api, g.TASK_ID, f"Downloading {remote_proj_dir}", sizeb, is_size=True
+    )
     api.file.download_directory(
-        g.TEAM_ID, remote_path=remote_proj_dir, local_save_path=local_save_dir
+        g.TEAM_ID,
+        remote_path=remote_proj_dir,
+        local_save_path=local_save_dir,
+        progress_cb=progress_cb,
     )
     return local_save_dir
 
