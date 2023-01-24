@@ -49,10 +49,10 @@ def convert_to_mp4(remote_video_path):
     progress_cb = download_progress.get_progress_cb(
         g.api, g.TASK_ID, f"Downloading {video_name}", sizeb, is_size=True
     )
-
     g.api.file.download(g.TEAM_ID, remote_video_path, local_video_path, progress_cb=progress_cb)
 
     # convert
+    convert_progress = sly.Progress(message=f"Converting {video_name}", total_cnt=1)
     output_video_path = local_video_path.split(".")[0] + g.base_video_extension
     remote_video_path = os.path.join(
         os.path.dirname(remote_video_path),
@@ -96,6 +96,8 @@ def convert_to_mp4(remote_video_path):
         need_video_transc=need_video_transc,
         need_audio_transc=need_audio_transc,
     )
+
+    convert_progress.iter_done_report()
 
     upload_progress = []
 
