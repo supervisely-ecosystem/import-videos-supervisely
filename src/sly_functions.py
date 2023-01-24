@@ -8,6 +8,7 @@ import supervisely as sly
 from supervisely.io.fs import get_file_ext, get_file_name, get_file_name_with_ext
 
 import sly_globals as g
+import download_progress
 
 
 def get_project_name_from_input_path(input_path: str) -> str:
@@ -36,11 +37,12 @@ def convert_to_mp4(remote_video_path):
     video_name = get_file_name_with_ext(remote_video_path)
     local_video_path = os.path.join(g.STORAGE_DIR, video_name)
 
-    g.api.file.download(
-        g.TEAM_ID,
-        remote_video_path,
-        local_video_path,
+    sizeb = g.api.file.get_info_by_path(team_id=g.TEAM_ID, remote_path=remote_video_path).sizeb
+    progress_cb = download_progress.get_progress_cb(
+        g.api, g.TASK_ID, f"Downloading {video_name}", sizeb, is_size=True
     )
+
+    g.api.file.download(g.TEAM_ID, remote_video_path, local_video_path, progress_cb=progress_cb)
 
     # convert
     output_video_path = local_video_path.split(".")[0] + g.base_video_extension
@@ -111,58 +113,29 @@ def convert_to_mp4(remote_video_path):
 
 
 def convert(input_path, output_path, need_video_transc, need_audio_transc):
+    video_codec = "copy"
+    audio_codec = "copy"
+
     if need_video_transc and need_audio_transc:
-        subprocess.call(
-            [
-                "ffmpeg",
-                "-i",
-                f"{input_path}",
-                "-c:v",
-                "libx264",
-                "-c:a",
-                "aac",
-                f"{output_path}",
-            ]
-        )
+        video_codec = "libx264"
+        audio_codec = "aac"
     elif need_video_transc:
-        subprocess.call(
-            [
-                "ffmpeg",
-                "-i",
-                f"{input_path}",
-                "-c:v",
-                "libx264",
-                "-c:a",
-                "copy",
-                f"{output_path}",
-            ]
-        )
+        video_codec = "libx264"
     elif need_audio_transc:
-        subprocess.call(
-            [
-                "ffmpeg",
-                "-i",
-                f"{input_path}",
-                "-c:v",
-                "copy",
-                "-c:a",
-                "aac",
-                f"{output_path}",
-            ]
-        )
-    else:
-        subprocess.call(
-            [
-                "ffmpeg",
-                "-i",
-                f"{input_path}",
-                "-c:v",
-                "copy",
-                "-c:a",
-                "copy",
-                f"{output_path}",
-            ]
-        )
+        audio_codec = "aac"
+
+    subprocess.call(
+        [
+            "ffmpeg",
+            "-i",
+            f"{input_path}",
+            "-c:v",
+            f"{video_codec}",
+            "-c:a",
+            f"{audio_codec}",
+            f"{output_path}",
+        ]
+    )
 
 
 def get_datasets_videos_map(dir_info: list) -> tuple:
