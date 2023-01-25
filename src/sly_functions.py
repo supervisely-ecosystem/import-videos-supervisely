@@ -46,34 +46,41 @@ def convert_to_mp4(remote_video_path, video_size):
     )
 
     # read video meta_data
-    vid_meta = json.loads(
-        subprocess.run(
-            shlex.split(
-                f"ffprobe -loglevel error -show_format -show_streams -of json {local_video_path}"
-            ),
-            capture_output=True,
-        ).stdout
-    )
+    try:
+        vid_meta = json.loads(
+            subprocess.run(
+                shlex.split(
+                    f"ffprobe -loglevel error -show_format -show_streams -of json {local_video_path}"
+                ),
+                capture_output=True,
+            ).stdout
+        )
 
-    # check codecs
-    need_video_transc = False
-    need_audio_transc = False
-    for stream in vid_meta["streams"]:
-        codec_type = stream["codec_type"]
-        if codec_type not in ["video", "audio"]:
-            continue
-        codec_name = stream["codec_name"]
-        if codec_type == "video":
-            # rotation = stream["tags"]["rotate"]
-            if codec_name == "h264":
+        # check codecs
+        need_video_transc = False
+        need_audio_transc = False
+        for stream in vid_meta["streams"]:
+            codec_type = stream["codec_type"]
+            if codec_type not in ["video", "audio"]:
                 continue
-            else:
-                need_video_transc = True
-        elif codec_type == "audio":
-            if codec_name == "aac":
-                continue
-            else:
-                need_audio_transc = True
+            codec_name = stream["codec_name"]
+            if codec_type == "video":
+                # rotation = stream["tags"]["rotate"]
+                if codec_name == "h264":
+                    continue
+                else:
+                    need_video_transc = True
+            elif codec_type == "audio":
+                if codec_name == "aac":
+                    continue
+                else:
+                    need_audio_transc = True
+    except:
+        sly.logger.warn(
+            msg=f"Couldn't read meta of {video_name}, video will be converted to default audio (aac) and video (h264) codecs. You can safely ignore this warning."
+        )
+        need_audio_transc = True
+        need_video_transc = True
 
     if (
         get_file_ext(video_name).lower() == g.base_video_extension
