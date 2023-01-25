@@ -1,11 +1,14 @@
+import json
 import os
+import shlex
+import subprocess
 from pathlib import Path
 
 import supervisely as sly
-from moviepy.editor import VideoFileClip
-from supervisely.io.fs import get_file_ext, get_file_name_with_ext, get_file_name
+from supervisely.io.fs import get_file_ext, get_file_name, get_file_name_with_ext
 
 import sly_globals as g
+import download_progress
 
 
 def get_project_name_from_input_path(input_path: str) -> str:
@@ -14,38 +17,138 @@ def get_project_name_from_input_path(input_path: str) -> str:
     return os.path.basename(full_path_dir)
 
 
-def download_project(api: sly.Api, input_path):
-    """Download target directory from Team Files"""
-    remote_proj_dir = input_path
-    if api.file.is_on_agent(input_path):
-        agent_id, path_on_agent = api.file.parse_agent_id_and_path(input_path)
-        local_save_dir = f"{g.STORAGE_DIR}{path_on_agent}/"
-    else:
-        local_save_dir = f"{g.STORAGE_DIR}{remote_proj_dir}/"
-    local_save_dir = local_save_dir.replace("//", "/")
-    api.file.download_directory(
-        g.TEAM_ID, remote_path=remote_proj_dir, local_save_path=local_save_dir
-    )
-    return local_save_dir
-
-
-def convert_to_mp4(remote_video_path):
+def convert_to_mp4(remote_video_path, video_size):
     # download from server
     video_name = get_file_name_with_ext(remote_video_path)
     local_video_path = os.path.join(g.STORAGE_DIR, video_name)
-    g.api.file.download(g.TEAM_ID, remote_video_path, local_video_path)
+
+    progress_cb = download_progress.get_progress_cb(
+        g.api, g.TASK_ID, f"Downloading {video_name}", video_size, is_size=True
+    )
+    if not g.IS_ON_AGENT:
+        g.api.file.download(g.TEAM_ID, remote_video_path, local_video_path, progress_cb=progress_cb)
+    else:
+        g.api.file.download_from_agent(
+            remote_path=remote_video_path, local_save_path=local_video_path, progress_cb=progress_cb
+        )
 
     # convert
-    clip = VideoFileClip(local_video_path)
-    local_video_path = local_video_path.split(".")[0] + g.base_video_extension
+    convert_progress = sly.Progress(message=f"Converting {video_name}", total_cnt=1)
+    output_video_path = f"{local_video_path.split('.')[0]}_h264{g.base_video_extension}"
+    orig_remote_video_path = remote_video_path
     remote_video_path = os.path.join(
-        os.path.dirname(remote_video_path),
+        "tmp",
+        "supervisely",
+        "import",
+        "import-videos-supervisely",
+        str(g.TASK_ID),
         f"{get_file_name(remote_video_path)}{g.base_video_extension}",
     )
-    clip.write_videofile(local_video_path)
+
+    # read video meta_data
+    try:
+        vid_meta = json.loads(
+            subprocess.run(
+                shlex.split(
+                    f"ffprobe -loglevel error -show_format -show_streams -of json {local_video_path}"
+                ),
+                capture_output=True,
+            ).stdout
+        )
+
+        # check codecs
+        need_video_transc = False
+        need_audio_transc = False
+        for stream in vid_meta["streams"]:
+            codec_type = stream["codec_type"]
+            if codec_type not in ["video", "audio"]:
+                continue
+            codec_name = stream["codec_name"]
+            if codec_type == "video":
+                # rotation = stream["tags"]["rotate"]
+                if codec_name == "h264":
+                    continue
+                else:
+                    need_video_transc = True
+            elif codec_type == "audio":
+                if codec_name == "aac":
+                    continue
+                else:
+                    need_audio_transc = True
+    except:
+        sly.logger.warn(
+            msg=(
+                f"Couldn't read meta of {video_name}, probably because of spaces in the video file name. "
+                "Video will be converted to default audio (aac) and video (h264) codecs. "
+                "You can safely ignore this warning."
+            )
+        )
+        need_audio_transc = True
+        need_video_transc = True
+
+    if (
+        get_file_ext(video_name).lower() == g.base_video_extension
+        and need_video_transc is False
+        and need_audio_transc is False
+        and not g.IS_ON_AGENT
+    ):
+        return g.api.file.get_info_by_path(team_id=g.TEAM_ID, remote_path=orig_remote_video_path)
+
+    # convert videos
+    convert(
+        input_path=local_video_path,
+        output_path=output_video_path,
+        need_video_transc=need_video_transc,
+        need_audio_transc=need_audio_transc,
+    )
+
+    convert_progress.iter_done_report()
+
+    upload_progress = []
+
+    def _print_progress(monitor, upload_progress):
+        if len(upload_progress) == 0:
+            upload_progress.append(
+                sly.Progress(
+                    message="Upload {!r}".format(video_name),
+                    total_cnt=monitor.len,
+                    ext_logger=sly.logger,
+                    is_size=True,
+                )
+            )
+        upload_progress[0].set_current_value(monitor.bytes_read)
 
     # upload && return info
-    return g.api.file.upload(g.TEAM_ID, local_video_path, remote_video_path)
+    return g.api.file.upload(
+        g.TEAM_ID,
+        output_video_path,
+        remote_video_path,
+        lambda m: _print_progress(m, upload_progress),
+    )
+
+
+def convert(input_path, output_path, need_video_transc, need_audio_transc):
+    video_codec = "copy"
+    audio_codec = "copy"
+
+    if need_video_transc:
+        video_codec = "libx264"
+    if need_audio_transc:
+        audio_codec = "aac"
+
+    subprocess.call(
+        [
+            "ffmpeg",
+            "-y",
+            "-i",
+            f"{input_path}",
+            "-c:v",
+            f"{video_codec}",
+            "-c:a",
+            f"{audio_codec}",
+            f"{output_path}",
+        ]
+    )
 
 
 def get_datasets_videos_map(dir_info: list) -> tuple:
@@ -54,12 +157,11 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
     for file_info in dir_info:
         full_path_file = file_info["path"]
         if g.IS_ON_AGENT:
-            agent_id, full_path_file = g.api.file.parse_agent_id_and_path(
-                full_path_file
-            )
+            agent_id, full_path_file = g.api.file.parse_agent_id_and_path(full_path_file)
+            full_path_file = f"agent://{agent_id}{full_path_file}"
         try:
             file_ext = get_file_ext(full_path_file)
-            if file_ext not in g.SUPPORTED_VIDEO_EXTS:
+            if file_ext.lower() not in g.SUPPORTED_VIDEO_EXTS:
                 sly.image.validate_ext(full_path_file)
         except Exception as e:
             sly.logger.warn(
@@ -71,12 +173,14 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
 
         file_name = get_file_name_with_ext(full_path_file)
         file_hash = file_info["hash"]
+        file_size = file_info["meta"]["size"]
         ds_name = get_dataset_name(full_path_file.lstrip("/"))
         if ds_name not in datasets_images_map.keys():
             datasets_images_map[ds_name] = {
                 "video_names": [],
                 "video_paths": [],
                 "video_hashes": [],
+                "video_sizes": [],
             }
 
         if file_name in datasets_images_map[ds_name]["video_names"]:
@@ -93,6 +197,7 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
         datasets_images_map[ds_name]["video_names"].append(file_name)
         datasets_images_map[ds_name]["video_paths"].append(full_path_file)
         datasets_images_map[ds_name]["video_hashes"].append(file_hash)
+        datasets_images_map[ds_name]["video_sizes"].append(file_size)
 
     datasets_names = list(datasets_images_map.keys())
     return datasets_names, datasets_images_map

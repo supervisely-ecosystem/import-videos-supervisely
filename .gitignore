@@ -1,6 +1,6 @@
-/secret_debug.env
+.idea
+.venv
 venv
 /src/__pycache__
-.idea
 /src/debug
-.vscode
+/secret_debug.env
