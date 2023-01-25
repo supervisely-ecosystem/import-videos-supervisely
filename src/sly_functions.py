@@ -45,10 +45,12 @@ def convert_to_mp4(remote_video_path):
     video_name = get_file_name_with_ext(remote_video_path)
     local_video_path = os.path.join(g.STORAGE_DIR, video_name)
 
-    vid_info = g.api.file.get_info_by_path(team_id=g.TEAM_ID, remote_path=remote_video_path)
-    progress_cb = download_progress.get_progress_cb(
-        g.api, g.TASK_ID, f"Downloading {video_name}", vid_info.sizeb, is_size=True
-    )
+    progress_cb = None
+    if not g.IS_ON_AGENT:
+        vid_info = g.api.file.get_info_by_path(team_id=g.TEAM_ID, remote_path=remote_video_path)
+        progress_cb = download_progress.get_progress_cb(
+            g.api, g.TASK_ID, f"Downloading {video_name}", vid_info.sizeb, is_size=True
+        )
     g.api.file.download(g.TEAM_ID, remote_video_path, local_video_path, progress_cb=progress_cb)
 
     # convert
@@ -61,7 +63,6 @@ def convert_to_mp4(remote_video_path):
     )
 
     # read video meta_data
-    # @TODO: get ffprobe from URL to check invalid .mp4
     vid_meta = json.loads(
         subprocess.run(
             shlex.split(
@@ -95,6 +96,7 @@ def convert_to_mp4(remote_video_path):
         get_file_ext(video_name).lower() == g.base_video_extension
         and need_video_transc is False
         and need_audio_transc is False
+        and not g.IS_ON_AGENT
     ):
         return vid_info
 
