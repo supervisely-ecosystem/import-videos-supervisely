@@ -38,6 +38,7 @@ REMOVE_SOURCE = bool(strtobool(os.getenv("modal.state.removeSource")))
 SUPPORTED_VIDEO_EXTS = ALLOWED_VIDEO_EXTENSIONS
 
 base_video_extension = ".mp4"
+files_sizes = {}
 
 STORAGE_DIR = os.path.join(sly.app.get_data_dir(), "storage_dir")
 mkdir(STORAGE_DIR, True)

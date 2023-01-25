@@ -43,31 +43,20 @@ def import_videos(api: sly.Api, task_id: int):
         videos_names = datasets_videos_map[dataset_name]["video_names"]
         videos_hashes = datasets_videos_map[dataset_name]["video_hashes"]
         videos_paths = datasets_videos_map[dataset_name]["video_paths"]
+        videos_sizes = datasets_videos_map[dataset_name]["video_sizes"]
 
-        for video_name, video_path, video_hash in progress_bar(
-            zip(videos_names, videos_paths, videos_hashes),
+        for video_name, video_path, video_hash, video_size in progress_bar(
+            zip(videos_names, videos_paths, videos_hashes, videos_sizes),
             total=len(videos_hashes),
             message="Dataset: {!r}".format(dataset_info.name),
         ):
             try:
-                video_info = f.convert_to_mp4(remote_video_path=video_path)
+                video_info = f.convert_to_mp4(remote_video_path=video_path, video_size=video_size)
                 video_name = video_info.name
                 video_hash = video_info.hash
-                if g.IS_ON_AGENT:
-                    for remote_file_info in dir_info:
-                        if remote_file_info["name"] != video_name:
-                            continue
-                        g.api.file.download(g.TEAM_ID, remote_file_info["path"], video_path)
-                        g.api.video.upload_paths(
-                            dataset_id=dataset_info.id,
-                            names=[video_name],
-                            paths=[video_path],
-                        )
-                        break
-                else:
-                    g.api.video.upload_hash(
-                        dataset_id=dataset_info.id, name=video_name, hash=video_hash
-                    )
+                g.api.video.upload_hash(
+                    dataset_id=dataset_info.id, name=video_name, hash=video_hash
+                )
             except Exception as ex:
                 sly.logger.warn(ex)
 
