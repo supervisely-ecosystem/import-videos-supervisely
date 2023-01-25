@@ -50,10 +50,9 @@ def import_videos(api: sly.Api, task_id: int):
             message="Dataset: {!r}".format(dataset_info.name),
         ):
             try:
-                if get_file_ext(video_path) != g.base_video_extension:
-                    video_info = f.convert_to_mp4(remote_video_path=video_path)
-                    video_name = video_info.name
-                    video_hash = video_info.hash
+                video_info = f.convert_to_mp4(remote_video_path=video_path)
+                video_name = video_info.name
+                video_hash = video_info.hash
                 if g.IS_ON_AGENT:
                     for remote_file_info in dir_info:
                         if remote_file_info["name"] != video_name:

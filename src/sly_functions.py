@@ -45,9 +45,9 @@ def convert_to_mp4(remote_video_path):
     video_name = get_file_name_with_ext(remote_video_path)
     local_video_path = os.path.join(g.STORAGE_DIR, video_name)
 
-    sizeb = g.api.file.get_info_by_path(team_id=g.TEAM_ID, remote_path=remote_video_path).sizeb
+    vid_info = g.api.file.get_info_by_path(team_id=g.TEAM_ID, remote_path=remote_video_path)
     progress_cb = download_progress.get_progress_cb(
-        g.api, g.TASK_ID, f"Downloading {video_name}", sizeb, is_size=True
+        g.api, g.TASK_ID, f"Downloading {video_name}", vid_info.sizeb, is_size=True
     )
     g.api.file.download(g.TEAM_ID, remote_video_path, local_video_path, progress_cb=progress_cb)
 
@@ -62,7 +62,7 @@ def convert_to_mp4(remote_video_path):
 
     # read video meta_data
     # @TODO: get ffprobe from URL to check invalid .mp4
-    vid_info = json.loads(
+    vid_meta = json.loads(
         subprocess.run(
             shlex.split(
                 f"ffprobe -loglevel error -show_format -show_streams -of json {local_video_path}"
@@ -74,7 +74,7 @@ def convert_to_mp4(remote_video_path):
     # check codecs
     need_video_transc = False
     need_audio_transc = False
-    for stream in vid_info["streams"]:
+    for stream in vid_meta["streams"]:
         codec_type = stream["codec_type"]
         if codec_type not in ["video", "audio"]:
             continue
@@ -90,6 +90,23 @@ def convert_to_mp4(remote_video_path):
                 continue
             else:
                 need_audio_transc = True
+
+    if (
+        get_file_ext(video_name).lower() == g.base_video_extension
+        and need_video_transc is False
+        and need_audio_transc is False
+    ):
+        return vid_info
+
+    if (
+        get_file_ext(video_name).lower() == g.base_video_extension
+        and (need_audio_transc or need_video_transc)
+        and local_video_path == output_video_path
+    ):
+        output_video_path = os.path.join(
+            os.path.dirname(output_video_path),
+            f"{get_file_name(output_video_path)}_h264{g.base_video_extension}",
+        )
 
     # convert videos
     convert(
@@ -136,6 +153,7 @@ def convert(input_path, output_path, need_video_transc, need_audio_transc):
     subprocess.call(
         [
             "ffmpeg",
+            "-y",
             "-i",
             f"{input_path}",
             "-c:v",
