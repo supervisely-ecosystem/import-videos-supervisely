@@ -77,7 +77,11 @@ def convert_to_mp4(remote_video_path, video_size):
                     need_audio_transc = True
     except:
         sly.logger.warn(
-            msg=f"Couldn't read meta of {video_name}, video will be converted to default audio (aac) and video (h264) codecs. You can safely ignore this warning."
+            msg=(
+                f"Couldn't read meta of {video_name}, probably because of spaces in the video file name. "
+                "Video will be converted to default audio (aac) and video (h264) codecs. "
+                "You can safely ignore this warning."
+            )
         )
         need_audio_transc = True
         need_video_transc = True
