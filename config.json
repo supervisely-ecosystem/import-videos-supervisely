@@ -18,7 +18,12 @@
   "min_instance_version": "6.5.46",
   "context_menu": {
     "context_category": "Import",
-    "target": ["files_folder", "agent_folder"]
+    "target": [
+      "videos_project",
+      "videos_dataset",
+      "files_folder",
+      "agent_folder"
+    ]
   },
   "icon": "https://github.com/supervisely-ecosystem/import-videos-supervisely/releases/download/v0.0.1/icon.png",
   "icon_cover": true,
