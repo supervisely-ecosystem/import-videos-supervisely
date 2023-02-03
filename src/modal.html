@@ -18,7 +18,7 @@
     </el-tabs>
   </div>
 
-  <div v-if="!context.slyProjectId">
+  <div v-if="!context.slyProjectId || !state.slyProjectId">
     <sly-field
       title="Import mode"
       description="Select whether you want to import files to new or existing project"
