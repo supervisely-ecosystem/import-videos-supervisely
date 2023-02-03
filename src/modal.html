@@ -10,6 +10,7 @@
       <el-tab-pane label="Team files" @tab-click="state.isDragMode = false">
         <sly-select-team-files
           :team-id="context.teamId"
+          :options="{maxHeight: '250px'}"
           @items-selected="state.selected = $event"
         >
         </sly-select-team-files>
