@@ -1,4 +1,6 @@
-<div>
+<div
+  v-if="context.slyFile && context.slyFolder && context.slyAgentFile && context.slyAgentFolder && context.slyProjectId && context.slyDatasetId"
+>
   <div v-if="!context.slyFolder && !context.slyFile">
     <el-tabs v-model="state.isDragMode">
       <el-tab-pane label="Drag & drop" @tab-click="state.isDragMode = true">
