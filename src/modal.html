@@ -1,5 +1,5 @@
 <div>
-  <div v-if="!context.slyFolder || !context.slyFile">
+  <div v-if="!context.slyFolder && !context.slyFile">
     <el-tabs v-model="state.isDragMode">
       <el-tab-pane label="Drag & drop" @tab-click="state.isDragMode = true">
         <sly-file-storage-upload
