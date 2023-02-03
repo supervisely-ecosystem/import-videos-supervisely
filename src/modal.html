@@ -17,7 +17,7 @@
     </el-tabs>
   </div>
 
-  <div v-if="!context.slyProjectId">
+  <div v-if="!state.slyProjectId">
     <sly-field
       title="Import mode"
       description="Select whether you want to import files to new or existing project"
@@ -38,7 +38,7 @@
     </sly-field>
   </div>
 
-  <div v-if="state.importMode === 'new'">
+  <div v-if="state.importMode === 'new' && !state.slyProjectId">
     <sly-field
       title="Result Project Name"
       description="Enter project name manually (optional) or keep empty to generate it automatically"
@@ -50,7 +50,7 @@
     ></el-input>
   </div>
 
-  <div v-if="state.importMode === 'project'">
+  <div v-if="state.importMode === 'project' && !state.slyProjectId">
     <sly-select-project
       :workspace-id="context.workspaceId"
       :project-id.sync="state.slyProjectId"
@@ -58,7 +58,7 @@
     ></sly-select-project>
   </div>
 
-  <div v-if="state.importMode === 'dataset'">
+  <div v-if="state.importMode === 'dataset' && !state.slyProjectId">
     <sly-select-project
       :workspace-id="context.workspaceId"
       :project-id.sync="state.slyProjectId"
