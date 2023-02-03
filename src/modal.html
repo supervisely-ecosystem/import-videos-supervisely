@@ -3,14 +3,12 @@
     <el-tabs v-model="state.isDragMode">
       <el-tab-pane label="Drag & drop" @tab-click="state.isDragMode = true">
         <sly-file-storage-upload
-          v-if="context.slyProjectId || (context.slyProjectId && context.slyDatasetId)"
           :options="{ folder: '/import/import-videos/' + context.formId + '/' }"
         >
         </sly-file-storage-upload>
       </el-tab-pane>
       <el-tab-pane label="Team files" @tab-click="state.isDragMode = false">
         <sly-select-team-files
-          v-if="context.slyProjectId || (context.slyProjectId && context.slyDatasetId)"
           :team-id="context.teamId"
           @items-selected="state.selected = $event"
         >
@@ -19,7 +17,7 @@
     </el-tabs>
   </div>
 
-  <div>
+  <div v-if="!context.slyProjectId || !context.slyDatasetId">
     <sly-field
       title="Import mode"
       description="Select whether you want to import files to new or existing project"
