@@ -9,8 +9,6 @@ from supervisely.io.fs import get_file_ext, get_file_name, get_file_name_with_ex
 from supervisely.video.video import ALLOWED_VIDEO_EXTENSIONS
 from supervisely._utils import generate_free_name
 
-import download_progress
-
 
 def get_files(directory):
     dir_files = []
