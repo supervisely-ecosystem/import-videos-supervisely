@@ -1,9 +1,10 @@
 <div>
-  <center
+  <div
+    style="text-align: center"
     v-if="!context.slyFile && !context.slyFolder && !context.slyProjectId && !context.slyDatasetId"
   >
     <b>Please select Input Context Menu to proceed</b>
-  </center>
+  </div>
   <div v-else>
     <div v-if="!context.slyFolder && !context.slyFile">
       <el-tabs v-model="state.isDragMode">
@@ -98,6 +99,5 @@
         {{ JSON.stringify(state, undefined, 2) }}
         Data:
         {{ JSON.stringify(state, undefined, 2) }}
-    </pre
-  >
+  </pre>
 </div>
