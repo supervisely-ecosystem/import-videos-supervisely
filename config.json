@@ -9,7 +9,8 @@
   "modal_template_state": {
     "importMode": "new",
     "removeSource": true,
-    "projectName": ""
+    "projectName": "",
+    "selected": []
   },
   "task_location": "workspace_tasks",
   "headless": true,
@@ -18,7 +19,12 @@
   "min_instance_version": "6.5.46",
   "context_menu": {
     "context_category": "Import",
-    "target": ["videos_project", "videos_dataset", "files_folder", "agent_folder"]
+    "target": [
+      "videos_project",
+      "videos_dataset",
+      "files_folder",
+      "agent_folder"
+    ]
   },
   "icon": "https://github.com/supervisely-ecosystem/import-videos-supervisely/releases/download/v0.0.1/icon.png",
   "icon_cover": true,
