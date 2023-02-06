@@ -2,7 +2,7 @@
   <div
     v-if="!context.slyFile && !context.slyFolder && !context.slyProjectId && !context.slyDatasetId"
   >
-    Please select context
+    <b>Please drag & drop file or folder</b>
   </div>
 
   <div v-else>
@@ -96,6 +96,8 @@
         Context:
         {{ JSON.stringify(context, undefined, 2) }}
         State:
+        {{ JSON.stringify(state, undefined, 2) }}
+        Data:
         {{ JSON.stringify(state, undefined, 2) }}
     </pre
   >
