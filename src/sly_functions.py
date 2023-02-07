@@ -1,12 +1,9 @@
-import json
-import shlex
 import subprocess
 from os import listdir, walk
 from os.path import basename, isdir, isfile, join
 
 import supervisely as sly
-from supervisely.io.fs import get_file_ext, get_file_name, get_file_name_with_ext
-from supervisely.video.video import ALLOWED_VIDEO_EXTENSIONS
+from supervisely.io.fs import get_file_name_with_ext
 from supervisely._utils import generate_free_name
 
 
