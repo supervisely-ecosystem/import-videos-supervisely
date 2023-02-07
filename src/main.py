@@ -10,21 +10,21 @@ from sly_functions import convert_to_mp4, get_ds_files_map
 
 progress_bar = SlyTqdm()
 DEFAULT_DATASET_NAME = "ds0"
-PROJECT_NAME = environ.get("modal.state.projectName", None)
-REMOVE_SOURCE = bool(strtobool(getenv("modal.state.removeSource")))
 
 # load ENV variables for debug, has no effect in production
 if sly.is_development():
     load_dotenv("local.env")
     load_dotenv(expanduser("~/supervisely.env"))
 
+PROJECT_NAME = environ.get("modal.state.projectName", None)
+REMOVE_SOURCE = bool(strtobool(getenv("modal.state.removeSource")))
 
 class MyImport(sly.app.Import):
     def process(self, context: sly.app.Import.Context):
         api = sly.Api.from_env()
 
         if context.project_id is None:
-            project_name = basename(context.path)
+            project_name = PROJECT_NAME or basename(context.path)
             project = api.project.create(
                 workspace_id=context.workspace_id,
                 name=project_name,
@@ -33,7 +33,7 @@ class MyImport(sly.app.Import):
             )
         else:
             project = api.project.get_info_by_id(id=context.project_id)
-            project_name = PROJECT_NAME or project.name
+            project_name =  project.name
 
         ds_files_map = get_ds_files_map(context.path, DEFAULT_DATASET_NAME)
         for ds_name in ds_files_map:
