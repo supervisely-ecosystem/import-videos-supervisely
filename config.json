@@ -10,6 +10,8 @@
     "importMode": "new",
     "removeSource": true,
     "projectName": "",
+    "slyFolder": "",
+    "slyFile": "",
     "selected": []
   },
   "task_location": "workspace_tasks",
