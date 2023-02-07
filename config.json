@@ -14,6 +14,9 @@
     "slyFile": "",
     "selected": []
   },
+  "modal_template_data": {
+    "importFolder": "/import/import-videos/"
+  },
   "task_location": "workspace_tasks",
   "headless": true,
   "disable_stop": true,

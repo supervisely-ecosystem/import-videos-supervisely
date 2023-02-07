@@ -10,7 +10,20 @@
       <el-tabs v-model="state.isDragMode">
         <el-tab-pane label="Drag & drop" @tab-click="state.isDragMode = true">
           <sly-file-storage-upload
-            :options="{ folder: '/import/import-videos/' + context.formId + '/' }"
+            :options="{ folder: `${data.importFolder}${context.formId}/` }"
+            @files-uploaded="(files) => {
+                let baseFolderPrefix = `${data.importFolder}${context.formId}/`;
+                let folderPrefix = '';
+                files.uploadedFiles.forEach((f, idx) => {
+                  const filePathParts = f.path.replace(baseFolderPrefix, '').split('/');
+                  if (filePathParts?.length > 1) {
+                    if (idx === 0) { folderPrefix = filePathParts[0]; }
+                    else if (filePathParts[0] !== folderPrefix) { folderPrefix = ''; }
+                  } else { folderPrefix = ''; }
+                });
+                if (folderPrefix) { baseFolderPrefix += folderPrefix; }
+                state.slyFolder = baseFolderPrefix;
+            }"
           >
           </sly-file-storage-upload>
         </el-tab-pane>
