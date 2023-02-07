@@ -21,7 +21,7 @@
                     else if (filePathParts[0] !== folderPrefix) { folderPrefix = ''; }
                   } else { folderPrefix = ''; }
                 });
-                if (folderPrefix) { baseFolderPrefix += folderPrefix; }
+                if (folderPrefix) { baseFolderPrefix += `${folderPrefix}/`; }
                 state.slyFolder = baseFolderPrefix;
             }"
           >
