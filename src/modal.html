@@ -18,7 +18,7 @@
           <sly-select-team-files
             :team-id="context.teamId"
             :options="{maxHeight: '250px'}"
-            @items-selected="(files) => { if (files && files.length) { state[files[0].type === 'folder' ? 'slyFolder' : 'slyFile' ] = files[0].path } else { state.slyFolder = ''; state.slyFile = ''; }"
+            @items-selected="(files) => { if (files && files.length) { state[files[0].type === 'folder' ? 'state.slyFolder' : 'state.slyFile' ] = files[0].path } else { state.slyFolder = ''; state.slyFile = ''; }"
           >
           </sly-select-team-files>
         </el-tab-pane>
