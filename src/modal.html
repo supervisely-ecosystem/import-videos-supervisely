@@ -17,8 +17,18 @@
         <el-tab-pane label="Team files" @tab-click="state.isDragMode = false">
           <sly-select-team-files
             :team-id="context.teamId"
-            :options="{maxHeight: '250px'}"
-            @items-selected="(files) => { if (files && files.length) { state[files[0].type === 'folder' ? 'slyFolder' : 'slyFile' ] = files[0].path } else { state.slyFolder = null; state.slyFile = null; }}"
+            :options="{maxHeight: '250px', selectionFileType: 'folder'}"
+            @items-selected="(files) => { 
+              if (files && files.length) { 
+                let setName = 'slyFolder';
+                let clearName = 'slyFile';
+                if (files[0].type === 'file') { setName = 'slyFile'; clearName = 'slyFolder'  }
+                state[setName] = files[0].path;
+                state[clearName] = null;
+              } else { 
+                state.slyFolder = null; state.slyFile = null; 
+              }
+            }"
           >
           </sly-select-team-files>
         </el-tab-pane>
