@@ -19,6 +19,7 @@ if sly.is_development():
 PROJECT_NAME = environ.get("modal.state.projectName", None)
 REMOVE_SOURCE = bool(strtobool(getenv("modal.state.removeSource")))
 
+
 class MyImport(sly.app.Import):
     def process(self, context: sly.app.Import.Context):
         api = sly.Api.from_env()
@@ -33,7 +34,7 @@ class MyImport(sly.app.Import):
             )
         else:
             project = api.project.get_info_by_id(id=context.project_id)
-            project_name =  project.name
+            project_name = project.name
 
         ds_files_map = get_ds_files_map(context.path, DEFAULT_DATASET_NAME)
         for ds_name in ds_files_map:

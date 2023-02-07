@@ -44,32 +44,24 @@ def convert_to_mp4(file_name, file_path, used_ds_names):
         )
     # read video meta data
     try:
-        vid_meta = json.loads(
-            subprocess.run(
-                shlex.split(
-                    f"ffprobe -loglevel error -show_format -show_streams -of json {file_path}"
-                ),
-                capture_output=True,
-            ).stdout
-        )
 
-        need_video_transc, need_audio_transc = check_codecs(vid_meta)
+        vid_meta = sly.video.get_info(file_path)
+        need_video_transc = check_codecs(vid_meta)
     except:
         sly.logger.warn(
             msg=(
-                f"Couldn't read meta of {file_name}, probably because of spaces in the video file name. "
-                "Video will be converted to default audio (aac) and video (h264) codecs. "
+                f"Couldn't read meta of {file_name}. "
+                "Video will be converted to video h264 codec. "
                 "You can safely ignore this warning."
             )
         )
-        need_video_transc, need_audio_transc = True, True
+        need_video_transc = True
 
     # convert videos
     convert(
         input_path=file_path,
         output_path=output_file_path,
         need_video_transc=need_video_transc,
-        need_audio_transc=need_audio_transc,
     )
 
     convert_progress.iter_done_report()
@@ -79,24 +71,18 @@ def convert_to_mp4(file_name, file_path, used_ds_names):
 
 def check_codecs(video_meta):
     need_video_transc = False
-    need_audio_transc = False
     for stream in video_meta["streams"]:
         codec_type = stream["codec_type"]
-        if codec_type not in ["video", "audio"]:
+        if codec_type not in ["video"]:
             continue
         codec_name = stream["codec_name"]
-        if codec_type == "audio":
-            if codec_name != "aac":
-                need_audio_transc = True
-        elif codec_type == "video":
-            if codec_name != "h264":
-                need_video_transc = True
-    return need_video_transc, need_audio_transc
+        if codec_type == "video" and codec_name != "h264":
+            need_video_transc = True
+    return need_video_transc
 
 
-def convert(input_path, output_path, need_video_transc, need_audio_transc):
+def convert(input_path, output_path, need_video_transc):
     video_codec = "libx264" if need_video_transc else "copy"
-    audio_codec = "aac" if need_audio_transc else "copy"
     subprocess.call(
         [
             "ffmpeg",
@@ -106,7 +92,7 @@ def convert(input_path, output_path, need_video_transc, need_audio_transc):
             "-c:v",
             f"{video_codec}",
             "-c:a",
-            f"{audio_codec}",
+            "copy",
             f"{output_path}",
         ]
     )
