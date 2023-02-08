@@ -66,7 +66,6 @@ class MyImport(sly.app.Import):
                 except Exception as ex:
                     sly.logger.warn(ex)
 
-        remove_dir(context.path)
         return context.project_id
 
 
