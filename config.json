@@ -19,8 +19,6 @@
   "context_menu": {
     "context_category": "Import",
     "target": [
-      "videos_project",
-      "videos_dataset",
       "files_folder",
       "agent_folder"
     ]
