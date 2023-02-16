@@ -48,13 +48,6 @@ def convert_to_mp4(remote_video_path, video_size):
         vid_meta = sly.video.get_info(local_video_path)
         need_video_transc = check_codecs(vid_meta)
     except:
-        sly.logger.warn(
-            msg=(
-                f"Couldn't read meta of {video_name}, probably because of spaces in the video file name. "
-                "Video will be converted to video (h264) codec. "
-                "You can safely ignore this warning."
-            )
-        )
         need_video_transc = True
 
     if (
