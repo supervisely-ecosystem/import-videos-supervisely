@@ -7,6 +7,7 @@ import sly_globals as g
 progress_bar = SlyTqdm()
 
 
+@sly.timeit
 def import_videos(api: sly.Api, task_id: int):
     dir_info = api.file.list(g.TEAM_ID, g.INPUT_PATH)
     if len(dir_info) == 0:
