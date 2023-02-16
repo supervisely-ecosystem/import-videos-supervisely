@@ -203,12 +203,14 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
     return datasets_names, datasets_images_map
 
 
-def get_dataset_name(file_path, default="ds0"):
+def get_dataset_name(file_path: str, default: str = "ds0") -> str:
+    """Dataset name from image path."""
     dir_path = os.path.split(file_path)[0]
     ds_name = default
     path_parts = Path(dir_path).parts
     if len(path_parts) != 1:
-        if g.IS_ON_AGENT:
-            return path_parts[-1]
-        ds_name = path_parts[1]
+        if g.INPUT_PATH.startswith("/import/import-videos/"):
+            ds_name = path_parts[3]
+        else:
+            ds_name = path_parts[-1]
     return ds_name
