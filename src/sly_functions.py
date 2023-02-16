@@ -1,6 +1,4 @@
-import json
 import os
-import shlex
 import subprocess
 from pathlib import Path
 
@@ -47,49 +45,21 @@ def convert_to_mp4(remote_video_path, video_size):
 
     # read video meta_data
     try:
-        vid_meta = json.loads(
-            subprocess.run(
-                shlex.split(
-                    f"ffprobe -loglevel error -show_format -show_streams -of json {local_video_path}"
-                ),
-                capture_output=True,
-            ).stdout
-        )
-
-        # check codecs
-        need_video_transc = False
-        need_audio_transc = False
-        for stream in vid_meta["streams"]:
-            codec_type = stream["codec_type"]
-            if codec_type not in ["video", "audio"]:
-                continue
-            codec_name = stream["codec_name"]
-            if codec_type == "video":
-                # rotation = stream["tags"]["rotate"]
-                if codec_name == "h264":
-                    continue
-                else:
-                    need_video_transc = True
-            elif codec_type == "audio":
-                if codec_name == "aac":
-                    continue
-                else:
-                    need_audio_transc = True
+        vid_meta = sly.video.get_info(local_video_path)
+        need_video_transc = check_codecs(vid_meta)
     except:
         sly.logger.warn(
             msg=(
                 f"Couldn't read meta of {video_name}, probably because of spaces in the video file name. "
-                "Video will be converted to default audio (aac) and video (h264) codecs. "
+                "Video will be converted to video (h264) codec. "
                 "You can safely ignore this warning."
             )
         )
-        need_audio_transc = True
         need_video_transc = True
 
     if (
         get_file_ext(video_name).lower() == g.base_video_extension
-        and need_video_transc is False
-        and need_audio_transc is False
+        and not need_video_transc
         and not g.IS_ON_AGENT
     ):
         return g.api.file.get_info_by_path(team_id=g.TEAM_ID, remote_path=orig_remote_video_path)
@@ -99,9 +69,7 @@ def convert_to_mp4(remote_video_path, video_size):
         input_path=local_video_path,
         output_path=output_video_path,
         need_video_transc=need_video_transc,
-        need_audio_transc=need_audio_transc,
     )
-
     convert_progress.iter_done_report()
 
     upload_progress = []
@@ -127,15 +95,20 @@ def convert_to_mp4(remote_video_path, video_size):
     )
 
 
-def convert(input_path, output_path, need_video_transc, need_audio_transc):
-    video_codec = "copy"
-    audio_codec = "copy"
+def check_codecs(video_meta):
+    need_video_transc = False
+    for stream in video_meta["streams"]:
+        codec_type = stream["codec_type"]
+        if codec_type not in ["video"]:
+            continue
+        codec_name = stream["codec_name"]
+        if codec_type == "video" and codec_name != "h264":
+            need_video_transc = True
+    return need_video_transc
 
-    if need_video_transc:
-        video_codec = "libx264"
-    if need_audio_transc:
-        audio_codec = "aac"
 
+def convert(input_path, output_path, need_video_transc):
+    video_codec = "libx264" if need_video_transc else "copy"
     subprocess.call(
         [
             "ffmpeg",
@@ -145,7 +118,7 @@ def convert(input_path, output_path, need_video_transc, need_audio_transc):
             "-c:v",
             f"{video_codec}",
             "-c:a",
-            f"{audio_codec}",
+            "copy",
             f"{output_path}",
         ]
     )
@@ -174,7 +147,11 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
         file_name = get_file_name_with_ext(full_path_file)
         file_hash = file_info["hash"]
         file_size = file_info["meta"]["size"]
-        ds_name = get_dataset_name(full_path_file.lstrip("/"))
+
+        try:
+            ds_name = get_dataset_name(full_path_file.lstrip("/"))
+        except:
+            ds_name = "ds0"
         if ds_name not in datasets_images_map.keys():
             datasets_images_map[ds_name] = {
                 "video_names": [],
@@ -203,12 +180,14 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
     return datasets_names, datasets_images_map
 
 
-def get_dataset_name(file_path, default="ds0"):
+def get_dataset_name(file_path: str, default: str = "ds0") -> str:
+    """Dataset name from image path."""
     dir_path = os.path.split(file_path)[0]
     ds_name = default
     path_parts = Path(dir_path).parts
     if len(path_parts) != 1:
-        if g.IS_ON_AGENT:
-            return path_parts[-1]
-        ds_name = path_parts[1]
+        if g.INPUT_PATH.startswith("/import/import-videos/"):
+            ds_name = path_parts[3]
+        else:
+            ds_name = path_parts[-1]
     return ds_name

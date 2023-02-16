@@ -1,6 +1,5 @@
 import supervisely as sly
 from supervisely.app.widgets import SlyTqdm
-from supervisely.io.fs import get_file_ext
 
 import sly_functions as f
 import sly_globals as g
