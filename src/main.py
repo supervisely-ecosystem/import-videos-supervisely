@@ -1,5 +1,6 @@
 import supervisely as sly
 from supervisely.app.widgets import SlyTqdm
+from supervisely.io.fs import get_file_name
 
 import sly_functions as f
 import sly_globals as g
@@ -40,24 +41,53 @@ def import_videos(api: sly.Api, task_id: int):
             dataset_info = api.dataset.get_info_by_name(parent_id=project.id, name=g.DATASET_NAME)
 
         videos_names = datasets_videos_map[dataset_name]["video_names"]
-        videos_hashes = datasets_videos_map[dataset_name]["video_hashes"]
         videos_paths = datasets_videos_map[dataset_name]["video_paths"]
         videos_sizes = datasets_videos_map[dataset_name]["video_sizes"]
 
-        for video_name, video_path, video_hash, video_size in progress_bar(
-            zip(videos_names, videos_paths, videos_hashes, videos_sizes),
-            total=len(videos_hashes),
+        result_video_paths = []
+        result_video_names = []
+
+        convert_progress = sly.Progress(message=f"Converting videos", total_cnt=len(videos_names))
+        for video_name, video_path, video_size in progress_bar(
+            zip(videos_names, videos_paths, videos_sizes),
+            total=len(videos_paths),
             message="Dataset: {!r}".format(dataset_info.name),
         ):
             try:
-                video_info = f.convert_to_mp4(remote_video_path=video_path, video_size=video_size)
-                video_name = video_info.name
-                video_hash = video_info.hash
-                g.api.video.upload_hash(
-                    dataset_id=dataset_info.id, name=video_name, hash=video_hash
-                )
+                video_path = f.convert_to_mp4(remote_video_path=video_path, video_size=video_size)
+                video_name = f"{get_file_name(video_name)}.{g.base_video_extension}"
+
+                result_video_paths.append(video_path)
+                result_video_names.append(video_name)
+
             except Exception as ex:
                 sly.logger.warn(ex)
+            convert_progress.iter_done_report()
+
+        for batch_video_paths, batch_video_names in zip(
+            sly.batched(result_video_paths), sly.batched(result_video_names)
+        ):
+
+            upload_progress = []
+
+            def _print_progress(monitor, upload_progress):
+                if len(upload_progress) == 0:
+                    upload_progress.append(
+                        sly.Progress(
+                            message="Upload {!r}".format(video_name),
+                            total_cnt=monitor,
+                            ext_logger=sly.logger,
+                            is_size=True,
+                        )
+                    )
+                upload_progress[0].set_current_value(monitor)
+
+            g.api.video.upload_paths(
+                dataset_id=dataset_info.id,
+                names=batch_video_names,
+                paths=batch_video_paths,
+                progress_cb=lambda m: _print_progress(m, upload_progress),
+            )
 
     if g.REMOVE_SOURCE and not g.IS_ON_AGENT:
         api.file.remove(team_id=g.TEAM_ID, path=g.INPUT_PATH)

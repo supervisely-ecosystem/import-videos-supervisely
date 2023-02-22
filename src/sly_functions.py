@@ -31,77 +31,42 @@ def convert_to_mp4(remote_video_path, video_size):
         )
 
     # convert
-    convert_progress = sly.Progress(message=f"Converting {video_name}", total_cnt=1)
     output_video_path = f"{local_video_path.split('.')[0]}_h264{g.base_video_extension}"
-    orig_remote_video_path = remote_video_path
-    remote_video_path = os.path.join(
-        "tmp",
-        "supervisely",
-        "import",
-        "import-videos-supervisely",
-        str(g.TASK_ID),
-        f"{get_file_name(remote_video_path)}{g.base_video_extension}",
-    )
 
     # read video meta_data
     try:
         vid_meta = sly.video.get_info(local_video_path)
-        need_video_transc = check_codecs(vid_meta)
+        need_video_transc, need_audio_transc = check_codecs(vid_meta)
     except:
-        need_video_transc = True
-
-    if (
-        get_file_ext(video_name).lower() == g.base_video_extension
-        and not need_video_transc
-        and not g.IS_ON_AGENT
-    ):
-        return g.api.file.get_info_by_path(team_id=g.TEAM_ID, remote_path=orig_remote_video_path)
+        need_video_transc, need_audio_transc = True, True
 
     # convert videos
     convert(
         input_path=local_video_path,
         output_path=output_video_path,
         need_video_transc=need_video_transc,
+        need_audio_transc=need_audio_transc,
     )
-    convert_progress.iter_done_report()
-
-    upload_progress = []
-
-    def _print_progress(monitor, upload_progress):
-        if len(upload_progress) == 0:
-            upload_progress.append(
-                sly.Progress(
-                    message="Upload {!r}".format(video_name),
-                    total_cnt=monitor.len,
-                    ext_logger=sly.logger,
-                    is_size=True,
-                )
-            )
-        upload_progress[0].set_current_value(monitor.bytes_read)
-
-    # upload && return info
-    return g.api.file.upload(
-        g.TEAM_ID,
-        output_video_path,
-        remote_video_path,
-        lambda m: _print_progress(m, upload_progress),
-    )
+    return output_video_path
 
 
 def check_codecs(video_meta):
-    need_video_transc = False
+    need_video_transc, need_audio_transc = False, False
     for stream in video_meta["streams"]:
-        codec_type = stream["codec_type"]
-        if codec_type not in ["video"]:
+        codec_type = stream["codecType"]
+        if codec_type not in ["video", "audio"]:
             continue
-        codec_name = stream["codec_name"]
+        codec_name = stream["codecName"]
         if codec_type == "video" and codec_name != "h264":
             need_video_transc = True
-    return need_video_transc
+        elif codec_type == "audio" and codec_name != "aac":
+            need_audio_transc = True
+    return need_video_transc, need_audio_transc
 
 
-def convert(input_path, output_path, need_video_transc):
+def convert(input_path, output_path, need_video_transc, need_audio_transc):
     video_codec = "libx264" if need_video_transc else "copy"
+    audio_codec = "aac" if need_audio_transc else "copy"
     subprocess.call(
         [
             "ffmpeg",
@@ -111,7 +76,7 @@ def convert(input_path, output_path, need_video_transc):
             "-c:v",
             f"{video_codec}",
             "-c:a",
-            "copy",
+            f"{audio_codec}",
             f"{output_path}",
         ]
     )
@@ -138,7 +103,6 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
             continue
 
         file_name = get_file_name_with_ext(full_path_file)
-        file_hash = file_info["hash"]
         file_size = file_info["meta"]["size"]
 
         try:
@@ -149,7 +113,6 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
             datasets_images_map[ds_name] = {
                 "video_names": [],
                 "video_paths": [],
-                "video_hashes": [],
                 "video_sizes": [],
             }
 
@@ -166,7 +129,6 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
 
         datasets_images_map[ds_name]["video_names"].append(file_name)
         datasets_images_map[ds_name]["video_paths"].append(full_path_file)
-        datasets_images_map[ds_name]["video_hashes"].append(file_hash)
         datasets_images_map[ds_name]["video_sizes"].append(file_size)
 
     datasets_names = list(datasets_images_map.keys())
