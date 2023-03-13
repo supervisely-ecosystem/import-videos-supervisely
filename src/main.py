@@ -26,6 +26,17 @@ def import_videos(api: sly.Api, task_id: int):
             change_name_if_conflict=True,
             type=sly.ProjectType.VIDEOS,
         )
+    elif g.IMPORT_MODE == "project" and g.PROJECT_ID is None:
+        project_name = f.get_project_name_from_input_path(g.INPUT_PATH)
+        sly.logger.warning("Existing project wasn`t selected. Creating new project...")
+        project = api.project.create(
+            workspace_id=g.WORKSPACE_ID,
+            name=project_name,
+            change_name_if_conflict=True,
+            type=sly.ProjectType.VIDEOS,
+        )
+        project_name = project.name
+        sly.logger.info(f'New project had been crated - "{project_name}" (ID: {project.id})')
     elif g.IMPORT_MODE in ["project", "dataset"]:
         project = api.project.get_info_by_id(id=g.PROJECT_ID)
         project_name = project.name
