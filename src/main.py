@@ -26,7 +26,7 @@ def import_videos(api: sly.Api, task_id: int):
             change_name_if_conflict=True,
             type=sly.ProjectType.VIDEOS,
         )
-    elif g.IMPORT_MODE == "project" and g.PROJECT_ID is None:
+    if g.IMPORT_MODE in ["project", "dataset"] and g.PROJECT_ID is None:
         project_name = f.get_project_name_from_input_path(g.INPUT_PATH)
         sly.logger.warning("Existing project wasn`t selected. Creating new project...")
         project = api.project.create(
@@ -36,7 +36,7 @@ def import_videos(api: sly.Api, task_id: int):
             type=sly.ProjectType.VIDEOS,
         )
         project_name = project.name
-        sly.logger.info(f'New project had been crated - "{project_name}" (ID: {project.id})')
+        sly.logger.info(f'New project has been created - "{project_name}" (ID: {project.id})')
     elif g.IMPORT_MODE in ["project", "dataset"]:
         project = api.project.get_info_by_id(id=g.PROJECT_ID)
         project_name = project.name
@@ -44,10 +44,11 @@ def import_videos(api: sly.Api, task_id: int):
     datasets_names, datasets_videos_map = f.get_datasets_videos_map(dir_info)
 
     for dataset_name in datasets_names:
-        if g.IMPORT_MODE != "dataset":
+        if g.IMPORT_MODE != "dataset" or g.DATASET_NAME is None:
             dataset_info = api.dataset.create(
                 project_id=project.id, name=dataset_name, change_name_if_conflict=True
             )
+            sly.logger.info(f'New dataset "{dataset_name}" has been created.')
         else:
             dataset_info = api.dataset.get_info_by_name(parent_id=project.id, name=g.DATASET_NAME)
 
