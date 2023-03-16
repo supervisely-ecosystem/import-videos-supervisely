@@ -18,7 +18,8 @@ TASK_ID = int(os.environ["TASK_ID"])
 TEAM_ID = int(os.environ["context.teamId"])
 WORKSPACE_ID = int(os.environ["context.workspaceId"])
 
-if PROJECT_ID := os.environ.get("modal.state.slyProjectId", None):
+
+if PROJECT_ID := sly.env.project_id(False):
     PROJECT_ID = int(PROJECT_ID)
 
 OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
