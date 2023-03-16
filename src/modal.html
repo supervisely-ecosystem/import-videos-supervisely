@@ -47,7 +47,7 @@
       :options="{availableTypes: ['videos']}"
     ></sly-select-project>
     <sly-select-dataset
-      :project-id="state.slyProjectId"
+      :project-id="state.inputProjectId"
       :datasets.sync="state.datasets"
     ></sly-select-dataset>
   </div>
@@ -61,13 +61,14 @@
     >
     </sly-field>
   </div>
-</div>
 
-<pre>
+  <pre>
         State:
         {{ JSON.stringify(state, undefined, 2) }}
         Data:
         {{ JSON.stringify(data, undefined, 2) }}
         Context:
         {{ JSON.stringify(context, undefined, 2) }}
-</pre>
+    </pre
+  >
+</div>
