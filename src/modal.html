@@ -35,7 +35,7 @@
   <div v-if="state.importMode === 'project'">
     <sly-select-project
       :workspace-id="context.workspaceId"
-      :project-id.sync="state.slyProjectId"
+      :project-id.sync="state.inputProjectId"
       :options="{availableTypes: ['videos']}"
     ></sly-select-project>
   </div>
@@ -64,16 +64,10 @@
 </div>
 
 <pre>
-    <div>
         State:
         {{ JSON.stringify(state, undefined, 2) }}
-    </div>
-    <div>
         Data:
         {{ JSON.stringify(data, undefined, 2) }}
-    </div>
-    <div>
         Context:
         {{ JSON.stringify(context, undefined, 2) }}
-    </div>
 </pre>
