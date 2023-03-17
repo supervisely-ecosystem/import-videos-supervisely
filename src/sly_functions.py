@@ -11,7 +11,12 @@ import download_progress
 
 def get_project_name_from_input_path(input_path: str) -> str:
     """Returns project name from target sly folder name."""
-    return os.path.basename(input_path)
+    project_name = os.path.basename(input_path)
+    if project_name == None or project_name == "":
+        project_name = os.path.dirname(input_path).strip("/")
+    if project_name == None or project_name == "":
+        project_name = "import-videos"
+    return project_name
 
 
 def convert_to_mp4(remote_video_path, video_size):
@@ -30,6 +35,8 @@ def convert_to_mp4(remote_video_path, video_size):
         )
 
     # convert
+    convert_progress = sly.Progress(message=f"Converting {video_name}", total_cnt=1)
+    output_video_name = f"{get_file_name(video_name)}{g.base_video_extension}"
     output_video_path = f"{local_video_path.split('.')[0]}_h264{g.base_video_extension}"
 
     # read video meta_data
@@ -46,7 +53,9 @@ def convert_to_mp4(remote_video_path, video_size):
         need_video_transc=need_video_transc,
         need_audio_transc=need_audio_transc,
     )
-    return output_video_path
+    convert_progress.iter_done_report()
+
+    return output_video_name, output_video_path
 
 
 def check_codecs(video_meta):
@@ -119,7 +128,7 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
             temp_name = sly.fs.get_file_name(full_path_file)
             temp_ext = sly.fs.get_file_ext(full_path_file)
             new_file_name = f"{temp_name}_{sly.rand_str(5)}{temp_ext}"
-            sly.logger.warning(
+            sly.logger.warn(
                 "Name {!r} already exists in dataset {!r}: renamed to {!r}".format(
                     file_name, ds_name, new_file_name
                 )

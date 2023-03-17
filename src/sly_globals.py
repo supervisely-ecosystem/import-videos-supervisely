@@ -14,12 +14,10 @@ if sly.is_development():
 
 api = sly.Api.from_env()
 
-TASK_ID = int(os.environ["TASK_ID"])
-TEAM_ID = int(os.environ["context.teamId"])
-WORKSPACE_ID = int(os.environ["context.workspaceId"])
-
-if PROJECT_ID := os.environ.get("modal.state.slyProjectId", None):
-    PROJECT_ID = int(PROJECT_ID)
+TASK_ID = sly.env.task_id()
+TEAM_ID = sly.env.team_id()
+WORKSPACE_ID = sly.env.workspace_id()
+PROJECT_ID = sly.env.project_id(False)
 
 OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
 

@@ -59,16 +59,16 @@ def import_videos(api: sly.Api, task_id: int):
         result_video_paths = []
         result_video_names = []
 
-        convert_progress = sly.Progress(message=f"Converting videos", total_cnt=len(videos_names))
+        convert_progress = sly.Progress(message="Converting videos", total_cnt=len(videos_names))
         for video_name, video_path, video_size in progress_bar(
             zip(videos_names, videos_paths, videos_sizes),
             total=len(videos_paths),
             message="Dataset: {!r}".format(dataset_info.name),
         ):
             try:
-                video_path = f.convert_to_mp4(remote_video_path=video_path, video_size=video_size)
-                video_name = f"{get_file_name(video_name)}.{g.base_video_extension}"
-
+                video_name, video_path = f.convert_to_mp4(
+                    remote_video_path=video_path, video_size=video_size
+                )
                 result_video_paths.append(video_path)
                 result_video_names.append(video_name)
 
