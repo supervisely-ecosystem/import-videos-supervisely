@@ -50,11 +50,11 @@ def import_videos(api: sly.Api, task_id: int):
             message="Dataset: {!r}".format(dataset_info.name),
         ):
             try:
-                video_info = f.convert_to_mp4(remote_video_path=video_path, video_size=video_size)
-                video_name = video_info.name
-                video_hash = video_info.hash
-                g.api.video.upload_hash(
-                    dataset_id=dataset_info.id, name=video_name, hash=video_hash
+                video_name, video_path = f.convert_to_mp4(
+                    remote_video_path=video_path, video_size=video_size
+                )
+                g.api.video.upload_path(
+                    dataset_id=dataset_info.id, name=video_name, path=video_path
                 )
             except Exception as ex:
                 sly.logger.warn(ex)
