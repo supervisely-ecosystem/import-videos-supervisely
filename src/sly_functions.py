@@ -11,7 +11,12 @@ import download_progress
 
 def get_project_name_from_input_path(input_path: str) -> str:
     """Returns project name from target sly folder name."""
-    return os.path.basename(input_path)
+    project_name = os.path.basename(input_path)
+    if project_name == None or project_name == "":
+        project_name = os.path.dirname(input_path).strip("/")
+    if project_name == None or project_name == "":
+        project_name = "import-videos"
+    return project_name
 
 
 def convert_to_mp4(remote_video_path, video_size):
