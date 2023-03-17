@@ -11,8 +11,7 @@ import download_progress
 
 def get_project_name_from_input_path(input_path: str) -> str:
     """Returns project name from target sly folder name."""
-    full_path_dir = os.path.dirname(input_path)
-    return os.path.basename(full_path_dir)
+    return os.path.basename(input_path)
 
 
 def convert_to_mp4(remote_video_path, video_size):
@@ -55,8 +54,7 @@ def convert_to_mp4(remote_video_path, video_size):
 
 
 def check_codecs(video_meta):
-    need_video_transc = False
-    need_audio_transc = False
+    need_video_transc, need_audio_transc = False, False
     for stream in video_meta["streams"]:
         codec_type = stream["codecType"]
         if codec_type not in ["video", "audio"]:
@@ -64,7 +62,7 @@ def check_codecs(video_meta):
         codec_name = stream["codecName"]
         if codec_type == "video" and codec_name != "h264":
             need_video_transc = True
-        if codec_type == "audio" and codec_name != "aac":
+        elif codec_type == "audio" and codec_name != "aac":
             need_audio_transc = True
     return need_video_transc, need_audio_transc
 
@@ -108,7 +106,6 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
             continue
 
         file_name = get_file_name_with_ext(full_path_file)
-        file_hash = file_info["hash"]
         file_size = file_info["meta"]["size"]
 
         try:
@@ -119,7 +116,6 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
             datasets_images_map[ds_name] = {
                 "video_names": [],
                 "video_paths": [],
-                "video_hashes": [],
                 "video_sizes": [],
             }
 
@@ -136,7 +132,6 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
 
         datasets_images_map[ds_name]["video_names"].append(file_name)
         datasets_images_map[ds_name]["video_paths"].append(full_path_file)
-        datasets_images_map[ds_name]["video_hashes"].append(file_hash)
         datasets_images_map[ds_name]["video_sizes"].append(file_size)
 
     datasets_names = list(datasets_images_map.keys())

@@ -23,7 +23,7 @@ OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
 
 IMPORT_MODE = os.environ["modal.state.importMode"]
 if IMPORT_MODE == "dataset":
-    DATASET_NAME = os.environ["modal.state.datasets"]
+    DATASET_NAME =  os.environ.get("modal.state.datasets", None)
 
 INPUT_PATH = os.environ.get("modal.state.slyFolder", None)
 IS_ON_AGENT = api.file.is_on_agent(INPUT_PATH)
