@@ -11,6 +11,7 @@ import download_progress
 
 def get_project_name_from_input_path(input_path: str) -> str:
     """Returns project name from target sly folder name."""
+    print(f"input_path: {input_path}")
     project_name = os.path.basename(input_path)
     print(f"project_name 1: {project_name}")
     if project_name == None or project_name == "":
