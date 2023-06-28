@@ -1,4 +1,4 @@
-git+https://github.com/supervisely/supervisely.git@video-api-upload-paths-fix-duplicate-hashes
+supervisely==6.72.49
 
 # formatter
 black
