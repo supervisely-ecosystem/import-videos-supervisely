@@ -73,4 +73,4 @@ Videos in the root directory will be moved to the dataset with the name "ds0".
     └──📜video_07.mp4
 ```
     
-As a result, we will get project `my_videos_project` with 3 datasets with the names: `ds0`, `my_folder1`, and `my_folder2`.  
+As a result, we will get project `my_videos_project` with 3 datasets named: `ds0`, `my_folder1`, and `my_folder2`.  
