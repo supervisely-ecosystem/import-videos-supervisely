@@ -38,16 +38,19 @@ Application imports selected Videos without annotations to Supervisely.
 3. Go to `Team Files` -> `Supervisely Agent` and find your folder there.
 4. Right-click to open the context menu and start the app. Now the app will upload data directly from your computer to the platform.
 
-📥 Starting from version `v1.2.0` application supports import to existing projects and datasets:
+📥 Starting from version `v1.2.0` application supports import to existing projects and datasets and has 3 modes:
 
-1. The app now has 3 import modes in the modal window:
    1. Create new project
+
+      <img width=460 src="https://github.com/supervisely-ecosystem/import-videos-supervisely/assets/57998637/0641e5e7-5309-4f88-b1d5-43f91e079dcb">
+
    2. Upload to an existing project
-   3. Upload to an existing dataset
 
-    ![new-modal](https://user-images.githubusercontent.com/48913536/199000700-426fbf14-dc1f-45af-885d-2fe3d0d47cb9.png)
+      <img width=460 src="https://github.com/supervisely-ecosystem/import-videos-supervisely/assets/57998637/58d9e05d-761d-4bf4-ab77-3b3c8bd8be55">
 
-2. When uploading to an existing dataset, make sure videos have unique names
+   3. Upload to an existing dataset. ⚠️ When uploading to an existing dataset, make sure videos have unique names!
+      
+      <img width=460 src="https://github.com/supervisely-ecosystem/import-videos-supervisely/assets/57998637/c5268beb-dd7f-4305-80b0-0ca5169e9629">
 
 ## Preparation
 The directory name defines the project name, subdirectories define the dataset names.  
