@@ -1,26 +1,33 @@
 {
-  "name": "Import Videos",
-  "type": "app",
-  "categories": ["import", "videos", "essentials"],
-  "description": "Import Videos without annotations to Supervisely",
-  "docker_image": "supervisely/base-py-sdk:6.72.49",
-  "main_script": "src/main.py",
-  "modal_template": "src/modal.html",
-  "modal_template_state": {
-    "importMode": "new",
-    "removeSource": true,
-    "projectName": ""
-  },
-  "task_location": "workspace_tasks",
-  "headless": true,
-  "disable_stop": true,
-  "min_agent_version": "6.7.4",
-  "min_instance_version": "6.5.46",
-  "context_menu": {
-    "context_category": "Import",
-    "target": ["files_folder", "agent_folder"]
-  },
-  "icon": "https://github.com/supervisely-ecosystem/import-videos-supervisely/releases/download/v0.0.1/icon.png",
-  "icon_cover": true,
-  "poster": "https://github.com/supervisely-ecosystem/import-videos-supervisely/releases/download/v0.0.1/poster.png"
+    "name": "Import Videos",
+    "type": "app",
+    "categories": [
+        "import",
+        "videos",
+        "essentials"
+    ],
+    "description": "Import Videos without annotations to Supervisely",
+    "docker_image": "supervisely/import-export:0.0.1",
+    "main_script": "src/main.py",
+    "modal_template": "src/modal.html",
+    "modal_template_state": {
+        "importMode": "new",
+        "removeSource": true,
+        "projectName": ""
+    },
+    "task_location": "workspace_tasks",
+    "headless": true,
+    "disable_stop": true,
+    "min_agent_version": "6.7.4",
+    "min_instance_version": "6.5.46",
+    "context_menu": {
+        "context_category": "Import",
+        "target": [
+            "files_folder",
+            "agent_folder"
+        ]
+    },
+    "icon": "https://github.com/supervisely-ecosystem/import-videos-supervisely/releases/download/v0.0.1/icon.png",
+    "icon_cover": true,
+    "poster": "https://github.com/supervisely-ecosystem/import-videos-supervisely/releases/download/v0.0.1/poster.png"
 }
