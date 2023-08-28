@@ -39,6 +39,12 @@ def convert_to_mp4(remote_video_path, video_size):
     output_video_name = f"{get_file_name(video_name)}{g.base_video_extension}"
     output_video_path = f"{local_video_path.split('.')[0]}_h264{g.base_video_extension}"
 
+    if local_video_path.lower().endswith(".mp4"):
+        sly.logger.info(
+            f'Video "{video_name}" is already in mp4 format, conversion is not required.'
+        )
+        return output_video_name, local_video_path
+
     # read video meta_data
     try:
         vid_meta = sly.video.get_info(local_video_path)
