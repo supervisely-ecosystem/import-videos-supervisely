@@ -99,7 +99,11 @@ def convert(input_path, output_path, need_video_transc, need_audio_transc):
 def get_datasets_videos_map(dir_info: list) -> tuple:
     """Creates a dictionary map based on api response from the target sly folder data."""
     datasets_images_map = {}
-    common_prefix = os.path.commonprefix([file_info["path"] for file_info in dir_info])
+    paths = [file_info["path"] for file_info in dir_info]
+    path_components = [os.path.normpath(path).split(os.path.sep) for path in paths]
+    common_prefix = os.path.sep.join(os.path.commonprefix(path_components))
+
+
     for file_info in dir_info:
         full_path_file = file_info["path"]
         if g.IS_ON_AGENT:
@@ -152,6 +156,8 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
 
 def get_dataset_name(file_path: str, common_prefix, default: str = "ds0") -> str:
     """Dataset name from image path."""
+    if not common_prefix.endswith("/"):
+        common_prefix += "/"
     dir_path = os.path.split(file_path)[0]
     ds_name = default
     path_parts = Path(dir_path).parts
