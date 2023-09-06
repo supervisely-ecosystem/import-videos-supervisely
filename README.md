@@ -54,7 +54,8 @@ Application imports selected Videos without annotations to Supervisely.
 
 ## Preparation
 The directory name defines the project name, subdirectories define the dataset names.  
-Videos in the root directory will be moved to the dataset with the name "ds0".
+Videos in the root directory will be moved to the dataset with the name "ds0".<br>
+ℹ️ You can download the archive with data example [here](https://github.com/supervisely-ecosystem/import-videos-supervisely/files/12537259/my_videos_project.zip).
 
 ```
 .
