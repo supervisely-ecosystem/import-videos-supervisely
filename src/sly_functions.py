@@ -99,6 +99,11 @@ def convert(input_path, output_path, need_video_transc, need_audio_transc):
 def get_datasets_videos_map(dir_info: list) -> tuple:
     """Creates a dictionary map based on api response from the target sly folder data."""
     datasets_images_map = {}
+    paths = [file_info["path"] for file_info in dir_info]
+    path_components = [os.path.normpath(path).split(os.path.sep) for path in paths]
+    common_prefix = os.path.sep.join(os.path.commonprefix(path_components))
+
+
     for file_info in dir_info:
         full_path_file = file_info["path"]
         if g.IS_ON_AGENT:
@@ -120,7 +125,7 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
         file_size = file_info["meta"]["size"]
 
         try:
-            ds_name = get_dataset_name(full_path_file.lstrip("/"))
+            ds_name = get_dataset_name(full_path_file.lstrip("/"), common_prefix.lstrip("/"))
         except:
             ds_name = "ds0"
         if ds_name not in datasets_images_map.keys():
@@ -149,13 +154,20 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
     return datasets_names, datasets_images_map
 
 
-def get_dataset_name(file_path: str, default: str = "ds0") -> str:
+def get_dataset_name(file_path: str, common_prefix, default: str = "ds0") -> str:
     """Dataset name from image path."""
+    if not common_prefix.endswith("/"):
+        common_prefix += "/"
     dir_path = os.path.split(file_path)[0]
     ds_name = default
     path_parts = Path(dir_path).parts
     if len(path_parts) != 1:
-        if g.INPUT_PATH.startswith("/import/import-videos/"):
+        if dir_path.startswith(common_prefix.rstrip("/")):
+            if dir_path == common_prefix.rstrip("/"):
+                ds_name = "ds0"
+            else:
+                ds_name = dir_path[len(common_prefix) :].split("/")[0]
+        elif g.INPUT_PATH.startswith("/import/import-videos/"):
             ds_name = path_parts[3]
         else:
             ds_name = path_parts[-1]
