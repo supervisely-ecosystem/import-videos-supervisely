@@ -7,7 +7,7 @@
         "essentials"
     ],
     "description": "Import Videos without annotations to Supervisely",
-    "docker_image": "supervisely/import-export:6.72.120",
+    "docker_image": "supervisely/import-export:6.72.119",
     "main_script": "src/main.py",
     "modal_template": "src/modal.html",
     "modal_template_state": {
