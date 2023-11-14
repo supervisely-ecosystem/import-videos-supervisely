@@ -7,7 +7,7 @@
         "essentials"
     ],
     "description": "Import Videos without annotations to Supervisely",
-    "docker_image": "supervisely/import-export:6.72.119",
+    "docker_image": "supervisely/import-export:6.72.182",
     "main_script": "src/main.py",
     "modal_template": "src/modal.html",
     "modal_template_state": {
@@ -19,7 +19,7 @@
     "headless": true,
     "disable_stop": true,
     "min_agent_version": "6.7.4",
-    "min_instance_version": "6.5.46",
+    "min_instance_version": "6.8.48",
     "context_menu": {
         "context_category": "Import",
         "target": [
