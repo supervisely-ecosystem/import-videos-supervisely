@@ -109,7 +109,8 @@ def import_videos(api: sly.Api, task_id: int):
     api.task.set_output_project(task_id=task_id, project_id=project.id, project_name=project.name)
 
 
-if __name__ == "__main__":
+@sly.handle_exceptions
+def main():
     sly.logger.info(
         "Script arguments",
         extra={
@@ -118,9 +119,7 @@ if __name__ == "__main__":
             "modal.state.slyFolder": g.INPUT_PATH,
         },
     )
-
     import_videos(g.api, g.TASK_ID)
-    try:
-        sly.app.fastapi.shutdown()
-    except KeyboardInterrupt:
-        sly.logger.info("Application shutdown successfully")
+
+if __name__ == "__main__":
+    sly.main_wrapper("main", main)
