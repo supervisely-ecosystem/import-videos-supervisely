@@ -24,11 +24,11 @@ def import_videos(api: sly.Api, task_id: int):
             change_name_if_conflict=True,
             type=sly.ProjectType.VIDEOS,
         )
-        project_name = project.name
-        sly.logger.info(f'New project has been created - "{project_name}" (ID: {project.id})')
+        sly.logger.info(f'New project has been created - "{project.name}" (ID: {project.id})')
     elif g.IMPORT_MODE in ["project", "dataset"]:
         project = api.project.get_info_by_id(id=g.PROJECT_ID)
-        project_name = project.name
+        if project is None:
+            sly.logger.warning("Existing project not found. Creating new project...")
     if g.IMPORT_MODE == "new" or project is None:
         project_name = (
             f.get_project_name_from_input_path(g.INPUT_PATH)
@@ -41,6 +41,8 @@ def import_videos(api: sly.Api, task_id: int):
             change_name_if_conflict=True,
             type=sly.ProjectType.VIDEOS,
         )
+        sly.logger.info(f'New project has been created - "{project.name}" (ID: {project.id})')
+    project_name = project.name
 
     datasets_names, datasets_videos_map = f.get_datasets_videos_map(dir_info)
 
