@@ -23,9 +23,15 @@ OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
 
 IMPORT_MODE = os.environ["modal.state.importMode"]
 if IMPORT_MODE == "dataset":
-    DATASET_NAME =  os.environ.get("modal.state.datasets", None)
+    DATASET_NAME = os.environ.get("modal.state.datasets", None)
 
-INPUT_PATH = os.environ.get("modal.state.slyFolder", None)
+INPUT_FOLDER = sly.env.folder(raise_not_found=False)
+INPUT_FILE = sly.env.file(raise_not_found=False)
+
+INPUT_PATH = INPUT_FOLDER or INPUT_FILE
+if INPUT_PATH is None:
+    raise RuntimeError("No input data. Please specify input files or folder.")
+
 IS_ON_AGENT = api.file.is_on_agent(INPUT_PATH)
 REMOVE_SOURCE = bool(strtobool(os.getenv("modal.state.removeSource")))
 
