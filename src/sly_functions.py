@@ -11,12 +11,15 @@ import download_progress
 
 def get_project_name_from_input_path(input_path: str) -> str:
     """Returns project name from target sly folder name."""
-    project_name = os.path.basename(input_path.rstrip("/"))
-    if project_name == None or project_name == "":
-        project_name = os.path.dirname(input_path).strip("/")
-    if project_name == None or project_name == "":
-        project_name = "import-videos"
-    return project_name
+    # project_name = os.path.basename(input_path.rstrip("/"))
+    # if project_name == None or project_name == "":
+    #     project_name = os.path.dirname(input_path).strip("/")
+    # if project_name == None or project_name == "":
+    #     project_name = "import-videos"
+    # return project_name
+
+    full_path_dir = os.path.dirname(input_path)
+    return os.path.basename(full_path_dir) or sly.fs.get_file_name(input_path)
 
 
 def convert_to_mp4(remote_video_path, video_size):
@@ -28,10 +31,14 @@ def convert_to_mp4(remote_video_path, video_size):
         g.api, g.TASK_ID, f"Downloading {video_name}", video_size, is_size=True
     )
     if not g.IS_ON_AGENT:
-        g.api.file.download(g.TEAM_ID, remote_video_path, local_video_path, progress_cb=progress_cb)
+        g.api.file.download(
+            g.TEAM_ID, remote_video_path, local_video_path, progress_cb=progress_cb
+        )
     else:
         g.api.file.download_from_agent(
-            remote_path=remote_video_path, local_save_path=local_video_path, progress_cb=progress_cb
+            remote_path=remote_video_path,
+            local_save_path=local_video_path,
+            progress_cb=progress_cb,
         )
 
     # convert
@@ -103,11 +110,12 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
     path_components = [os.path.normpath(path).split(os.path.sep) for path in paths]
     common_prefix = os.path.sep.join(os.path.commonprefix(path_components))
 
-
     for file_info in dir_info:
         full_path_file = file_info["path"]
         if g.IS_ON_AGENT:
-            agent_id, full_path_file = g.api.file.parse_agent_id_and_path(full_path_file)
+            agent_id, full_path_file = g.api.file.parse_agent_id_and_path(
+                full_path_file
+            )
             full_path_file = f"agent://{agent_id}{full_path_file}"
         try:
             file_ext = get_file_ext(full_path_file)
@@ -125,7 +133,9 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
         file_size = file_info["meta"]["size"]
 
         try:
-            ds_name = get_dataset_name(full_path_file.lstrip("/"), common_prefix.lstrip("/"))
+            ds_name = get_dataset_name(
+                full_path_file.lstrip("/"), common_prefix.lstrip("/")
+            )
         except:
             ds_name = "ds0"
         if ds_name not in datasets_images_map.keys():
