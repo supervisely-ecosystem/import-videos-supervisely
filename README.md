@@ -1,13 +1,11 @@
 <div align="center" markdown>
 <img src="https://github.com/supervisely-ecosystem/import-videos-supervisely/releases/download/v0.0.1/poster.png"/>
 
-
-
 # Import Videos
 
 <p align="center">
   <a href="#Overview">Overview</a> •
-  <a href="#Preparation">Preparation</a> 
+  <a href="#Preparation">Preparation</a>
 </p>
 
 [![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/import-videos-supervisely)
@@ -26,10 +24,11 @@ Application imports selected Videos without annotations to Supervisely.
 
 ⚠️ All videos will be converted to `.mp4` format during import.
 
-🌎 Community version has a 300MB limitation for video size, no limits apply to Enterprise Edition 
-
+🌎 Community version has a 300MB limitation for video size, no limits apply to Enterprise Edition
 
 **App updates:**
+
+📄 v1.3.20 Starting from this version application supports uploading the files from TeamFiles and drag and drop option.
 
 🏋️ Starting from version `v1.1.3` application supports import from a special directory on your local computer. It is made for Enterprise Edition customers who need to upload tens or even hundreds of gigabytes of data without using a drag-and-drop mechanism:
 
