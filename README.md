@@ -24,10 +24,10 @@ Application imports selected Videos without annotations to Supervisely.
 
 ⚠️ All videos will be converted to `.mp4` format during import.
 
-Video file size limits depend on your team plan:
-- 📚 `Community`: 100MB
-- 🏢 `Pro`: 500MB
-- 🚀 `Enterprise`: no limits
+Single video file size limits:
+- 📚 `Community` plan: **100MB**
+- 🏢 `Pro` plan: **500MB**
+- 🚀 `Enterprise` edition: **no limits**
 
 **App updates:**
 
