@@ -9,7 +9,7 @@
 	"modal_template_state": {
 		"importMode": "new",
 		"removeSource": true,
-		"projectName": ""
+		"projectName": "Videos Project"
 	},
 	"task_location": "workspace_tasks",
 	"headless": true,
