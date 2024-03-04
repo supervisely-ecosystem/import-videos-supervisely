@@ -1,26 +1,18 @@
 <div>
   <div>
-    <sly-field
-      title="Import mode"
-      description="Select whether you want to import files to new or existing project"
+    <sly-file-storage-upload
+      v-if="context.slyProjectId"
+      :options="{ folder: '/import/import-videos-supervisely/' + context.formId + '/' }"
+      @files-uploaded="state.files = '/import/import-videos-supervisely/' + context.formId + '/'"
     >
-      <el-select v-model="state.importMode">
-        <el-option key="new" label="Create new project" value="new"></el-option>
-        <el-option
-          key="project"
-          label="Upload to existing project"
-          value="project"
-        ></el-option>
-        <el-option
-          key="dataset"
-          label="Upload to existing dataset"
-          value="dataset"
-        ></el-option>
-      </el-select>
-    </sly-field>
+    </sly-file-storage-upload>
   </div>
 
-  <div v-if="state.importMode === 'new'">
+  <div
+    class="fflex align-start"
+    style="flex-direction: column; margin: 0 0 20px 0"
+    v-if="!context.slyProjectId"
+  >
     <sly-field
       title="Result Project Name"
       description="Enter project name manually (optional) or keep empty to generate it automatically"
@@ -30,26 +22,6 @@
       placeholder="Enter Project Name"
       v-model="state.projectName"
     ></el-input>
-  </div>
-
-  <div v-if="state.importMode === 'project'">
-    <sly-select-project
-      :workspace-id="context.workspaceId"
-      :project-id.sync="state.inputProjectId"
-      :options="{availableTypes: ['videos']}"
-    ></sly-select-project>
-  </div>
-
-  <div v-if="state.importMode === 'dataset'">
-    <sly-select-project
-      :workspace-id="context.workspaceId"
-      :project-id.sync="state.inputProjectId"
-      :options="{availableTypes: ['videos']}"
-    ></sly-select-project>
-    <sly-select-dataset
-      :project-id="state.inputProjectId"
-      :datasets.sync="state.datasets"
-    ></sly-select-dataset>
   </div>
 
   <div class="fflex align-start" v-if="!state.prefNodeId">
