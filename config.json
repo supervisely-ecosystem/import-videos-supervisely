@@ -3,7 +3,7 @@
 	"type": "app",
 	"categories": ["import", "videos", "essentials"],
 	"description": "Import Videos without annotations to Supervisely",
-	"docker_image": "supervisely/import-export:6.72.227",
+	"docker_image": "supervisely/import-export:6.73.22",
 	"main_script": "src/main.py",
 	"modal_template": "src/modal.html",
 	"modal_template_state": {
@@ -15,10 +15,17 @@
 	"headless": true,
 	"disable_stop": true,
 	"min_agent_version": "6.7.4",
-	"min_instance_version": "6.8.54",
+	"min_instance_version": "6.8.88",
 	"context_menu": {
 		"context_category": "Import",
-		"target": ["files_folder", "agent_folder", "files_file", "agent_file"]
+		"target": [
+            "files_folder",
+            "agent_folder",
+            "files_file",
+            "agent_file",
+            "videos_project",
+            "videos_dataset"
+        ]
 	},
 	"icon": "https://github.com/supervisely-ecosystem/import-videos-supervisely/releases/download/v0.0.1/icon.png",
 	"icon_cover": true,

@@ -17,23 +17,35 @@ api = sly.Api.from_env()
 TASK_ID = sly.env.task_id()
 TEAM_ID = sly.env.team_id()
 WORKSPACE_ID = sly.env.workspace_id()
-PROJECT_ID = sly.env.project_id(False)
 
-OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
+PROJECT_ID = sly.env.project_id(raise_not_found=False)
+DATASET_ID = sly.env.dataset_id(raise_not_found=False)
 
-IMPORT_MODE = os.environ["modal.state.importMode"]
-if IMPORT_MODE == "dataset":
-    DATASET_NAME = os.environ.get("modal.state.datasets", None)
-
+if DATASET_ID is not None:
+    IMPORT_MODE = "dataset"
+elif PROJECT_ID is not None:
+    IMPORT_MODE = "project"
+else:
+    IMPORT_MODE = "new"
+INPUT_FILES = os.environ.get("modal.state.files", None)
 INPUT_FOLDER = sly.env.folder(raise_not_found=False)
 INPUT_FILE = sly.env.file(raise_not_found=False)
+sly.logger.info(
+    f"App starting... INPUT_FILES: {INPUT_FILES}, INPUT_FOLDER: {INPUT_FOLDER}, INPUT_FILE: {INPUT_FILE}"
+)
 
-INPUT_PATH = INPUT_FOLDER or INPUT_FILE
+
+INPUT_PATH = INPUT_FILES or INPUT_FOLDER or INPUT_FILE
+sly.logger.info(f"App starting... INPUT_PATH: {INPUT_PATH}")
+CHECKED_INPUT_PATH = INPUT_PATH
 if INPUT_PATH is None:
     raise RuntimeError("No input data. Please specify input files or folder.")
 
+OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
+DEFAULT_DATASET_NAME = "ds0"
+
 IS_ON_AGENT = api.file.is_on_agent(INPUT_PATH)
-REMOVE_SOURCE = bool(strtobool(os.getenv("modal.state.removeSource")))
+REMOVE_SOURCE = bool(strtobool(os.getenv("modal.state.removeSource", "False")))
 
 SUPPORTED_VIDEO_EXTS = ALLOWED_VIDEO_EXTENSIONS
 
