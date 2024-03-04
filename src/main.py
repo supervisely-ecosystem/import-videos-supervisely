@@ -58,10 +58,8 @@ def import_videos(api: sly.Api, task_id: int):
 
     for dataset_name in datasets_names:
         dataset_info = None
-        if g.IMPORT_MODE == "dataset" and g.DATASET_NAME is not None:
-            dataset_info = api.dataset.get_info_by_name(
-                parent_id=project.id, name=g.DATASET_NAME
-            )
+        if g.IMPORT_MODE == "dataset" and g.DATASET_ID is not None:
+            dataset_info = api.dataset.get_info_by_id(g.DATASET_ID)
         if dataset_info is None:
             dataset_info = api.dataset.create(
                 project_id=project.id, name=dataset_name, change_name_if_conflict=True
