@@ -17,7 +17,9 @@ def get_project_name_from_input_path(input_path: str) -> str:
 
 def convert_to_mp4(remote_video_path, video_size):
     # download from server
-    video_name = get_file_name_with_ext(remote_video_path)
+    video_name = get_file_name(remote_video_path)
+    video_ext = get_file_ext(remote_video_path)
+    video_name = f"{video_name}{video_ext.lower()}"
     local_video_path = os.path.join(g.STORAGE_DIR, video_name)
 
     progress_cb = download_progress.get_progress_cb(
@@ -37,7 +39,7 @@ def convert_to_mp4(remote_video_path, video_size):
     # convert
     convert_progress = sly.Progress(message=f"Converting {video_name}", total_cnt=1)
     output_video_name = f"{get_file_name(video_name)}{g.base_video_extension}"
-    output_video_path = f"{local_video_path.split('.')[0]}_h264{g.base_video_extension}"
+    output_video_path = os.path.splitext(local_video_path)[0] + "_h264" + g.base_video_extension
 
     if local_video_path.lower().endswith(".mp4"):
         sly.logger.info(
