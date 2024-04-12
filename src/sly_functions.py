@@ -1,4 +1,5 @@
 import os
+import magic
 import subprocess
 from pathlib import Path
 
@@ -42,10 +43,13 @@ def convert_to_mp4(remote_video_path, video_size):
     output_video_path = os.path.splitext(local_video_path)[0] + "_h264" + g.base_video_extension
 
     if local_video_path.lower().endswith(".mp4"):
-        sly.logger.info(
-            f'Video "{video_name}" is already in mp4 format, conversion is not required.'
-        )
-        return output_video_name, local_video_path
+        mime = magic.Magic(mime=True)
+        mime_type = mime.from_file(local_video_path)
+        if mime_type == "video/mp4":
+            sly.logger.info(
+                f'Video "{video_name}" is already in mp4 format, conversion is not required.'
+            )
+            return output_video_name, local_video_path
 
     # read video meta_data
     try:
@@ -74,8 +78,14 @@ def check_codecs(video_meta):
             continue
         codec_name = stream["codecName"]
         if codec_type == "video" and codec_name != "h264":
+            sly.logger.info(
+                f"Video codec is not h264, transcoding is required: {codec_name}"
+            )
             need_video_transc = True
         elif codec_type == "audio" and codec_name != "aac":
+            sly.logger.info(
+                f"Audio codec is not aac, transcoding is required: {codec_name}"
+            )
             need_audio_transc = True
     return need_video_transc, need_audio_transc
 
@@ -83,6 +93,7 @@ def check_codecs(video_meta):
 def convert(input_path, output_path, need_video_transc, need_audio_transc):
     video_codec = "libx264" if need_video_transc else "copy"
     audio_codec = "aac" if need_audio_transc else "copy"
+    sly.logger.info("Converting video...")
     subprocess.call(
         [
             "ffmpeg",
