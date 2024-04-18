@@ -3,8 +3,6 @@ from distutils.util import strtobool
 
 import supervisely as sly
 from dotenv import load_dotenv
-from fastapi import FastAPI
-from supervisely.app.fastapi import create
 from supervisely.io.fs import mkdir
 from supervisely.video.video import ALLOWED_VIDEO_EXTENSIONS
 
@@ -12,18 +10,30 @@ if sly.is_development():
     load_dotenv("local.env")
     load_dotenv(os.path.expanduser("~/supervisely.env"))
 
+# region envvars
+team_id = sly.env.team_id()
+workspace_id = sly.env.workspace_id()
+
+task_id = sly.env.task_id(raise_not_found=False)
+if sly.is_development():
+    sly.logger.warning("Development mode: task_id set to 1...")
+    task_id = 1
+
+project_id = sly.env.project_id(raise_not_found=False)
+dataset_id = sly.env.dataset_id(raise_not_found=False)
+# endregion
+
+sly.logger.info(
+    f"Team ID: {team_id}, Workspace ID: {workspace_id}, "
+    f"Project ID: {project_id}, Dataset ID: {dataset_id}."
+)
+
 api = sly.Api.from_env()
 
-TASK_ID = sly.env.task_id()
-TEAM_ID = sly.env.team_id()
-WORKSPACE_ID = sly.env.workspace_id()
-
-PROJECT_ID = sly.env.project_id(raise_not_found=False)
-DATASET_ID = sly.env.dataset_id(raise_not_found=False)
-
-if DATASET_ID is not None:
+# region modalvars
+if dataset_id is not None:
     IMPORT_MODE = "dataset"
-elif PROJECT_ID is not None:
+elif project_id is not None:
     IMPORT_MODE = "project"
 else:
     IMPORT_MODE = "new"
@@ -46,11 +56,12 @@ DEFAULT_DATASET_NAME = "ds0"
 
 IS_ON_AGENT = api.file.is_on_agent(INPUT_PATH)
 REMOVE_SOURCE = bool(strtobool(os.getenv("modal.state.removeSource", "False")))
+# endregion
 
 SUPPORTED_VIDEO_EXTS = ALLOWED_VIDEO_EXTENSIONS
 
 base_video_extension = ".mp4"
 files_sizes = {}
 
-STORAGE_DIR = os.path.join(sly.app.get_data_dir(), "storage_dir")
+STORAGE_DIR = os.path.join(os.getcwd(), "storage_dir")
 mkdir(STORAGE_DIR, True)
