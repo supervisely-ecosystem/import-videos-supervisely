@@ -10,9 +10,9 @@ progress_bar = SlyTqdm()
 def import_videos(api: sly.Api):
     dir_info = api.file.list(g.team_id, g.INPUT_PATH)
     if len(dir_info) == 0:
-        raise Exception(f"There are no files in selected directory: '{g.INPUT_PATH}'")
+        raise Exception(f"There are no files in selected directory: {g.INPUT_PATH}")
 
-    sly.logger.debug(f"Number of files in selected directory: {len(dir_info)}")
+    sly.logger.info(f"Number of files in selected directory: {len(dir_info)}")
 
     project = None
     if g.IMPORT_MODE in ["project", "dataset"] and g.project_id is None:

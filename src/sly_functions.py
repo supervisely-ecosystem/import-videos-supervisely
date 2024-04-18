@@ -44,21 +44,31 @@ def convert_to_mp4(remote_video_path, video_size):
         os.path.splitext(local_video_path)[0] + "_h264" + g.base_video_extension
     )
 
-    if local_video_path.lower().endswith(".mp4"):
-        mime = magic.Magic(mime=True)
-        mime_type = mime.from_file(local_video_path)
-        if mime_type == "video/mp4":
-            sly.logger.info(
-                f'Video "{video_name}" is already in mp4 format, conversion is not required.'
-            )
-            return output_video_name, local_video_path
-
     # read video meta_data
     try:
         vid_meta = sly.video.get_info(local_video_path)
         need_video_transc, need_audio_transc = check_codecs(vid_meta)
     except:
         need_video_transc, need_audio_transc = True, True
+
+    if local_video_path.lower().endswith(".mp4"):
+        mime = magic.Magic(mime=True)
+        mime_type = mime.from_file(local_video_path)
+        if mime_type == "video/mp4":
+            sly.logger.info(
+                f"Video {video_name} is already in mp4 format, will check codecs"
+            )
+            if not need_video_transc and not need_audio_transc:
+                sly.logger.info(
+                    f"Video {video_name} is already in the correct format and "
+                    "has the correct codecs, no transcoding required."
+                )
+                return output_video_name, local_video_path
+            else:
+                sly.logger.info(
+                    f"Video {video_name} in the mp4 format, but using unsupported codecs, "
+                    "transcoding is still required."
+                )
 
     # convert videos
     convert(
