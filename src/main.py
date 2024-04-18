@@ -1,6 +1,5 @@
 import supervisely as sly
 from supervisely.app.widgets import SlyTqdm
-from supervisely.io.fs import get_file_name
 
 import sly_functions as f
 import sly_globals as g
@@ -8,16 +7,15 @@ import sly_globals as g
 progress_bar = SlyTqdm()
 
 
-@sly.timeit
-def import_videos(api: sly.Api, task_id: int):
-    dir_info = api.file.list(g.TEAM_ID, g.INPUT_PATH)
+def import_videos(api: sly.Api):
+    dir_info = api.file.list(g.team_id, g.INPUT_PATH)
     if len(dir_info) == 0:
         raise Exception(f"There are no files in selected directory: '{g.INPUT_PATH}'")
 
     sly.logger.debug(f"Number of files in selected directory: {len(dir_info)}")
 
     project = None
-    if g.IMPORT_MODE in ["project", "dataset"] and g.PROJECT_ID is None:
+    if g.IMPORT_MODE in ["project", "dataset"] and g.project_id is None:
         project_name = (
             f.get_project_name_from_input_path(g.INPUT_PATH)
             if len(g.OUTPUT_PROJECT_NAME) == 0
@@ -25,7 +23,7 @@ def import_videos(api: sly.Api, task_id: int):
         )
         sly.logger.warning("Existing project wasn`t selected. Creating new project...")
         project = api.project.create(
-            workspace_id=g.WORKSPACE_ID,
+            workspace_id=g.workspace_id,
             name=project_name,
             change_name_if_conflict=True,
             type=sly.ProjectType.VIDEOS,
@@ -34,7 +32,7 @@ def import_videos(api: sly.Api, task_id: int):
             f'New project has been created - "{project.name}" (ID: {project.id})'
         )
     elif g.IMPORT_MODE in ["project", "dataset"]:
-        project = api.project.get_info_by_id(id=g.PROJECT_ID)
+        project = api.project.get_info_by_id(id=g.project_id)
         if project is None:
             sly.logger.warning("Existing project not found. Creating new project...")
     if g.IMPORT_MODE == "new" or project is None:
@@ -44,7 +42,7 @@ def import_videos(api: sly.Api, task_id: int):
             else g.OUTPUT_PROJECT_NAME
         )
         project = api.project.create(
-            workspace_id=g.WORKSPACE_ID,
+            workspace_id=g.workspace_id,
             name=project_name,
             change_name_if_conflict=True,
             type=sly.ProjectType.VIDEOS,
@@ -58,8 +56,8 @@ def import_videos(api: sly.Api, task_id: int):
 
     for dataset_name in datasets_names:
         dataset_info = None
-        if g.IMPORT_MODE == "dataset" and g.DATASET_ID is not None:
-            dataset_info = api.dataset.get_info_by_id(g.DATASET_ID)
+        if g.IMPORT_MODE == "dataset" and g.dataset_id is not None:
+            dataset_info = api.dataset.get_info_by_id(g.dataset_id)
         if dataset_info is None:
             dataset_info = api.dataset.create(
                 project_id=project.id, name=dataset_name, change_name_if_conflict=True
@@ -117,29 +115,16 @@ def import_videos(api: sly.Api, task_id: int):
             )
 
     if g.REMOVE_SOURCE and not g.IS_ON_AGENT:
-        api.file.remove(team_id=g.TEAM_ID, path=g.INPUT_PATH)
+        api.file.remove(team_id=g.team_id, path=g.INPUT_PATH)
         source_dir_name = g.INPUT_PATH.lstrip("/").rstrip("/")
         sly.logger.info(
             msg=f"Source directory: '{source_dir_name}' was successfully removed."
         )
 
     api.task.set_output_project(
-        task_id=task_id, project_id=project.id, project_name=project.name
+        task_id=g.task_id, project_id=project.id, project_name=project.name
     )
-
-
-@sly.handle_exceptions(has_ui=False)
-def main():
-    sly.logger.info(
-        "Script arguments",
-        extra={
-            "context.teamId": g.TEAM_ID,
-            "context.workspaceId": g.WORKSPACE_ID,
-            "modal.state.slyFolder": g.INPUT_PATH,
-        },
-    )
-    import_videos(g.api, g.TASK_ID)
 
 
 if __name__ == "__main__":
-    sly.main_wrapper("main", main)
+    import_videos(g.api)
