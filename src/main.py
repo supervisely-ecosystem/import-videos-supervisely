@@ -3,6 +3,7 @@ from supervisely.app.widgets import SlyTqdm
 
 import sly_functions as f
 import sly_globals as g
+import workflow as w
 
 progress_bar = SlyTqdm()
 
@@ -31,6 +32,7 @@ def import_videos(api: sly.Api):
         sly.logger.info(
             f'New project has been created - "{project.name}" (ID: {project.id})'
         )
+        
     elif g.IMPORT_MODE in ["project", "dataset"]:
         project = api.project.get_info_by_id(id=g.project_id)
         if project is None:
@@ -124,7 +126,7 @@ def import_videos(api: sly.Api):
     api.task.set_output_project(
         task_id=g.task_id, project_id=project.id, project_name=project.name
     )
-
+    w.workflow_output(api, project.id)
 
 if __name__ == "__main__":
     import_videos(g.api)
