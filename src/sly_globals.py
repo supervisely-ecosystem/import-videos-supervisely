@@ -61,6 +61,7 @@ REMOVE_SOURCE = bool(strtobool(os.getenv("modal.state.removeSource", "False")))
 SUPPORTED_VIDEO_EXTS = ALLOWED_VIDEO_EXTENSIONS
 
 base_video_extension = ".mp4"
+accepted_video_codecs = ["h264", "h265", "avc", "hevc", "av1", "vp9"]
 files_sizes = {}
 
 STORAGE_DIR = os.path.join(os.getcwd(), "storage_dir")

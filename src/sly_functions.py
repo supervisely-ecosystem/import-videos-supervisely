@@ -41,26 +41,22 @@ def convert_to_mp4(remote_video_path, video_size):
     convert_progress = sly.Progress(message=f"Converting {video_name}", total_cnt=1)
     output_video_name = f"{get_file_name(video_name)}{g.base_video_extension}"
     output_video_path = (
-        os.path.splitext(local_video_path)[0] + "_h264" + g.base_video_extension
+        os.path.splitext(local_video_path)[0] + "_converted" + g.base_video_extension
     )
-
+    need_video_transmux = False
     # read video meta_data
     try:
-        vid_meta = sly.video.get_info(local_video_path)
-        need_video_transc, need_audio_transc = check_codecs(vid_meta)
+        video_meta = sly.video.get_info(local_video_path)
+        need_video_transcode, need_audio_transcode = check_codecs(video_meta)
     except:
-        need_video_transc, need_audio_transc = True, True
-
-    if local_video_path.lower().endswith(".mp4"):
+        need_video_transcode, need_audio_transcode = True, True
+    if local_video_path.lower().endswith(g.base_video_extension):
         mime = magic.Magic(mime=True)
         mime_type = mime.from_file(local_video_path)
         if mime_type == "video/mp4":
-            sly.logger.info(
-                f"Video {video_name} is already in mp4 format, will check codecs"
-            )
-            if not need_video_transc and not need_audio_transc:
+            if not need_video_transcode and not need_audio_transcode:
                 sly.logger.info(
-                    f"Video {video_name} is already in the correct format and "
+                    f"Video {video_name} is already in the correct mp4 format and "
                     "has the correct codecs, no transcoding required."
                 )
                 return output_video_name, local_video_path
@@ -69,13 +65,38 @@ def convert_to_mp4(remote_video_path, video_size):
                     f"Video {video_name} in the mp4 format, but using unsupported codecs, "
                     "transcoding is still required."
                 )
+        else:
+            if not need_video_transcode and not need_audio_transcode:
+                sly.logger.info(
+                    f"Video {video_name} has the correct codecs but is not in the correct mp4 format, "
+                    "transmultiplexing is required."
+                )
+                need_video_transmux = True
+            else:
+                sly.logger.info(
+                    f"Video {video_name} is not in the correct mp4 format and uses unsupported codecs, "
+                    "transcoding is required."
+                )
+    else:
+        if not need_video_transcode and not need_audio_transcode:
+            sly.logger.info(
+                f"Video {video_name} is not in mp4 format, but has the correct codecs, "
+                "transmultiplexing is required."
+            )
+            need_video_transmux = True
+        else:
+            sly.logger.info(
+                f"Video {video_name} is not in mp4 format and uses unsupported codecs, "
+                "transcoding is required."
+            )
 
     # convert videos
     convert(
         input_path=local_video_path,
         output_path=output_video_path,
-        need_video_transc=need_video_transc,
-        need_audio_transc=need_audio_transc,
+        need_video_transc=need_video_transcode,
+        need_audio_transc=need_audio_transcode,
+        just_transmux=need_video_transmux,
     )
     convert_progress.iter_done_report()
 
@@ -89,9 +110,9 @@ def check_codecs(video_meta):
         if codec_type not in ["video", "audio"]:
             continue
         codec_name = stream["codecName"]
-        if codec_type == "video" and codec_name != "h264":
+        if codec_type == "video" and codec_name not in g.accepted_video_codecs:
             sly.logger.info(
-                f"Video codec is not h264, transcoding is required: {codec_name}"
+                f"Video codec is not compatible with the container mp4, transcoding is required: {codec_name}"
             )
             need_video_transc = True
         elif codec_type == "audio" and codec_name != "aac":
@@ -102,9 +123,15 @@ def check_codecs(video_meta):
     return need_video_transc, need_audio_transc
 
 
-def convert(input_path, output_path, need_video_transc, need_audio_transc):
-    video_codec = "libx264" if need_video_transc else "copy"
-    audio_codec = "aac" if need_audio_transc else "copy"
+def convert(
+    input_path, output_path, need_video_transc, need_audio_transc, just_transmux
+):
+    if just_transmux:
+        video_codec = "copy"
+        audio_codec = "copy"
+    else:
+        video_codec = "libx264" if need_video_transc else "copy"
+        audio_codec = "aac" if need_audio_transc else "copy"
     sly.logger.info("Converting video...")
     subprocess.call(
         [
@@ -140,7 +167,7 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
             if file_ext.lower() not in g.SUPPORTED_VIDEO_EXTS:
                 sly.image.validate_ext(full_path_file)
         except Exception as e:
-            sly.logger.warn(
+            sly.logger.warning(
                 "File skipped {!r}: error occurred during processing {!r}".format(
                     full_path_file, str(e)
                 )
@@ -167,7 +194,7 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
             temp_name = sly.fs.get_file_name(full_path_file)
             temp_ext = sly.fs.get_file_ext(full_path_file)
             new_file_name = f"{temp_name}_{sly.rand_str(5)}{temp_ext}"
-            sly.logger.warn(
+            sly.logger.warning(
                 "Name {!r} already exists in dataset {!r}: renamed to {!r}".format(
                     file_name, ds_name, new_file_name
                 )

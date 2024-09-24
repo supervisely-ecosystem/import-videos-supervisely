@@ -32,7 +32,7 @@ def import_videos(api: sly.Api):
         sly.logger.info(
             f'New project has been created - "{project.name}" (ID: {project.id})'
         )
-        
+
     elif g.IMPORT_MODE in ["project", "dataset"]:
         project = api.project.get_info_by_id(id=g.project_id)
         if project is None:
@@ -89,7 +89,7 @@ def import_videos(api: sly.Api):
                 result_video_names.append(video_name)
 
             except Exception as ex:
-                sly.logger.warn(ex)
+                sly.logger.warning(ex)
             convert_progress.iter_done_report()
 
         for batch_video_paths, batch_video_names in zip(
@@ -109,12 +109,22 @@ def import_videos(api: sly.Api):
                     )
                 upload_progress[0].set_current_value(monitor)
 
-            g.api.video.upload_paths(
-                dataset_id=dataset_info.id,
-                names=batch_video_names,
-                paths=batch_video_paths,
-                progress_cb=lambda m: _print_progress(m, upload_progress),
-            )
+            try:
+                g.api.video.upload_paths(
+                    dataset_id=dataset_info.id,
+                    names=batch_video_names,
+                    paths=batch_video_paths,
+                    progress_cb=lambda m: _print_progress(m, upload_progress),
+                )
+            except FileNotFoundError as e:
+                error_message = str(e)
+                if "No such file or directory" in error_message:
+                    file_path = error_message.split(":")[-1].strip()
+                    if "converted" in file_path:
+                        sly.logger.error(
+                            f"Error: Some files did not convert successfully. Please check the file: {file_path}"
+                        )
+                raise e
 
     if g.REMOVE_SOURCE and not g.IS_ON_AGENT:
         api.file.remove(team_id=g.team_id, path=g.INPUT_PATH)
@@ -127,6 +137,7 @@ def import_videos(api: sly.Api):
         task_id=g.task_id, project_id=project.id, project_name=project.name
     )
     w.workflow_output(api, project.id)
+
 
 if __name__ == "__main__":
     import_videos(g.api)
