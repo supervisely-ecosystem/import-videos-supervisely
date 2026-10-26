@@ -145,6 +145,7 @@ def get_datasets_videos_map(dir_info: list) -> tuple:
                     full_path_file, str(e)
                 )
             )
+            g.SKIPPED_FILES.append(full_path_file)
             continue
 
         file_name = get_file_name_with_ext(full_path_file)

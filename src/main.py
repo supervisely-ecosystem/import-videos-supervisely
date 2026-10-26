@@ -56,6 +56,11 @@ def import_videos(api: sly.Api):
 
     datasets_names, datasets_videos_map = f.get_datasets_videos_map(dir_info)
 
+    # Count what we plan to import vs what is actually uploaded, so the source is only
+    # removed from Team Files when every video made it into the project.
+    planned_cnt = sum(len(m["video_names"]) for m in datasets_videos_map.values())
+    uploaded_cnt = 0
+
     for dataset_name in datasets_names:
         dataset_info = None
         if g.IMPORT_MODE == "dataset" and g.dataset_id is not None:
@@ -109,24 +114,66 @@ def import_videos(api: sly.Api):
                     )
                 upload_progress[0].set_current_value(monitor)
 
-            g.api.video.upload_paths(
+            uploaded = g.api.video.upload_paths(
                 dataset_id=dataset_info.id,
                 names=batch_video_names,
                 paths=batch_video_paths,
                 progress_cb=lambda m: _print_progress(m, upload_progress),
             )
+            # upload_paths logs "File skipped ..." and drops videos the server rejects;
+            # a video with several streams returns several infos with the same name.
+            uploaded_cnt += min(
+                len(batch_video_names), len({info.name for info in uploaded})
+            )
 
+    failed_cnt = planned_cnt - uploaded_cnt
+    skipped_cnt = len(g.SKIPPED_FILES)
+    sly.logger.info(
+        f"Import summary: {uploaded_cnt} of {planned_cnt} videos imported, "
+        f"{failed_cnt} failed, {skipped_cnt} files skipped as unsupported."
+    )
+    import_complete = planned_cnt > 0 and failed_cnt == 0 and skipped_cnt == 0
+
+    source_kept = False
     if g.REMOVE_SOURCE and not g.IS_ON_AGENT:
-        api.file.remove(team_id=g.team_id, path=g.INPUT_PATH)
         source_dir_name = g.INPUT_PATH.lstrip("/").rstrip("/")
-        sly.logger.info(
-            msg=f"Source directory: '{source_dir_name}' was successfully removed."
-        )
+        if import_complete:
+            api.file.remove(team_id=g.team_id, path=g.INPUT_PATH)
+            sly.logger.info(
+                msg=f"Source directory: '{source_dir_name}' was successfully removed."
+            )
+        else:
+            source_kept = True
+            reasons = []
+            if failed_cnt > 0:
+                reasons.append(f"{failed_cnt} of {planned_cnt} videos failed to import")
+            if skipped_cnt > 0:
+                reasons.append(f"{skipped_cnt} files were skipped as unsupported")
+            if planned_cnt == 0:
+                reasons.append("no videos were found to import")
+            sly.logger.warning(
+                f"Source directory: '{source_dir_name}' was NOT removed from Team Files "
+                f"because the import was not complete ({'; '.join(reasons)}). "
+                "Check the warnings above; the source is kept so no data is lost.",
+                extra={"skipped_files": g.SKIPPED_FILES[:100]},
+            )
 
     api.task.set_output_project(
         task_id=g.task_id, project_id=project.id, project_name=project.name
     )
     w.workflow_output(api, project.id)
+
+    if failed_cnt > 0:
+        # Do not report success when videos were lost on the way; what was imported
+        # stays in the project.
+        msg = (
+            f"{failed_cnt} of {planned_cnt} videos failed to import (see warnings above). "
+            f"{uploaded_cnt} videos were imported into project '{project.name}' "
+            f"(id: {project.id})."
+        )
+        if source_kept:
+            msg += " The source in Team Files was kept."
+        raise RuntimeError(msg)
 
 if __name__ == "__main__":
     import_videos(g.api)

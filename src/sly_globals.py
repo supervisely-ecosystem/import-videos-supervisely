@@ -63,5 +63,9 @@ SUPPORTED_VIDEO_EXTS = ALLOWED_VIDEO_EXTENSIONS
 base_video_extension = ".mp4"
 files_sizes = {}
 
+# Files found in the input that are not imported because they are not supported videos.
+# The source is only removed from Team Files when this stays empty.
+SKIPPED_FILES = []
+
 STORAGE_DIR = os.path.join(os.getcwd(), "storage_dir")
 mkdir(STORAGE_DIR, True)
