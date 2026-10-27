@@ -52,17 +52,39 @@ class FakeVideoApi:
         return infos
 
 
+class FakeProjectApi:
+    """Projects: `existing` ids already exist (not created by the app), new ones get id 100+."""
+
+    def __init__(self, video_api, existing=()):
+        self._video = video_api
+        self.projects = {pid: f"existing {pid}" for pid in existing}
+        self.created = []  # ids created by the app
+        self.removed = []  # ids removed by the app
+        self.datasets = {}  # dataset_id -> project_id
+
+    def get_info_by_id(self, id):
+        if id not in self.projects:
+            return None
+        items = sum(1 for ds_id, _ in self._video.uploaded if self.datasets.get(ds_id) == id)
+        return SimpleNamespace(id=id, name=self.projects[id], items_count=items)
+
+    def create(self, workspace_id, name, change_name_if_conflict=False, type=None):
+        pid = 100 + len(self.created)
+        self.projects[pid] = name
+        self.created.append(pid)
+        return SimpleNamespace(id=pid, name=name)
+
+    def remove(self, id):
+        self.projects.pop(id)
+        self.removed.append(id)
+
+
 class FakeApi:
-    def __init__(self, files, server_rejects=()):
+    def __init__(self, files, server_rejects=(), existing_projects=()):
         self.file = FakeFileApi(files)
         self.video = FakeVideoApi(server_rejects)
         self._ds = 0
-        self.project = SimpleNamespace(
-            get_info_by_id=lambda id: None,
-            create=lambda workspace_id, name, change_name_if_conflict=False, type=None: (
-                SimpleNamespace(id=100, name=name)
-            ),
-        )
+        self.project = FakeProjectApi(self.video, existing_projects)
         self.dataset = SimpleNamespace(create=self._create_dataset, get_info_by_id=None)
         self.output_project = None
         self.task = SimpleNamespace(set_output_project=self._set_output_project)
@@ -72,6 +94,7 @@ class FakeApi:
 
     def _create_dataset(self, project_id, name, change_name_if_conflict=False):
         self._ds += 1
+        self.project.datasets[self._ds] = project_id
         return SimpleNamespace(id=self._ds, name=name)
 
     def _set_output_project(self, task_id, project_id, project_name=None):
@@ -88,8 +111,8 @@ def run_app(tmp_path, monkeypatch):
     import supervisely as sly
 
     def _run(files, input_path="/videos/", remove_source=True, download_fails=(),
-             server_rejects=()):
-        api = FakeApi(files, server_rejects)
+             server_rejects=(), project_id=None):
+        api = FakeApi(files, server_rejects, existing_projects=[project_id] if project_id else ())
         monkeypatch.chdir(tmp_path)  # sly_globals creates ./storage_dir
         monkeypatch.setenv("ENV", "production")
         monkeypatch.setenv("TASK_ID", "1")
@@ -100,6 +123,8 @@ def run_app(tmp_path, monkeypatch):
         for name in ("modal.state.files", "modal.state.slyFile", "context.projectId",
                      "context.datasetId", "modal.state.projectName"):
             monkeypatch.delenv(name, raising=False)
+        if project_id:
+            monkeypatch.setenv("context.projectId", str(project_id))
         monkeypatch.setattr(sly.Api, "from_env", classmethod(lambda cls, *a, **k: api))
         monkeypatch.syspath_prepend(SRC_DIR)
         for mod in APP_MODULES:

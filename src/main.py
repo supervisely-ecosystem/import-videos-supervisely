@@ -15,7 +15,26 @@ def import_videos(api: sly.Api):
 
     sly.logger.info(f"Number of files in selected directory: {len(dir_info)}")
 
+    datasets_names, datasets_videos_map = f.get_datasets_videos_map(dir_info)
+
+    # Count what we plan to import vs what is actually uploaded, so the source is only
+    # removed from Team Files when every video made it into the project.
+    planned_cnt = sum(len(m["video_names"]) for m in datasets_videos_map.values())
+    uploaded_cnt = 0
+
+    if planned_cnt == 0:
+        # Nothing importable: fail before creating a project, so no empty project is left
+        # behind. The source is kept as is.
+        supported = ", ".join(dict.fromkeys(ext.lower() for ext in g.SUPPORTED_VIDEO_EXTS))
+        raise RuntimeError(
+            f"No supported videos found in '{g.INPUT_PATH}' "
+            f"({len(g.SKIPPED_FILES)} files skipped as unsupported). "
+            f"Supported extensions: {supported}. "
+            "Nothing was imported, no project was created and the source in Team Files was kept."
+        )
+
     project = None
+    project_created = False
     if g.IMPORT_MODE in ["project", "dataset"] and g.project_id is None:
         project_name = (
             f.get_project_name_from_input_path(g.INPUT_PATH)
@@ -29,6 +48,7 @@ def import_videos(api: sly.Api):
             change_name_if_conflict=True,
             type=sly.ProjectType.VIDEOS,
         )
+        project_created = True
         sly.logger.info(
             f'New project has been created - "{project.name}" (ID: {project.id})'
         )
@@ -49,17 +69,11 @@ def import_videos(api: sly.Api):
             change_name_if_conflict=True,
             type=sly.ProjectType.VIDEOS,
         )
+        project_created = True
         sly.logger.info(
             f'New project has been created - "{project.name}" (ID: {project.id})'
         )
     project_name = project.name
-
-    datasets_names, datasets_videos_map = f.get_datasets_videos_map(dir_info)
-
-    # Count what we plan to import vs what is actually uploaded, so the source is only
-    # removed from Team Files when every video made it into the project.
-    planned_cnt = sum(len(m["video_names"]) for m in datasets_videos_map.values())
-    uploaded_cnt = 0
 
     for dataset_name in datasets_names:
         dataset_info = None
@@ -158,19 +172,32 @@ def import_videos(api: sly.Api):
                 extra={"skipped_files": g.SKIPPED_FILES[:100]},
             )
 
-    api.task.set_output_project(
-        task_id=g.task_id, project_id=project.id, project_name=project.name
+    # Nothing made it into a project this run created: remove it rather than leave an
+    # empty project behind (only if the server confirms it is still empty).
+    project_removed = (
+        uploaded_cnt == 0 and project_created and f.remove_project_if_empty(api, project)
     )
-    w.workflow_output(api, project.id)
+
+    if not project_removed:
+        api.task.set_output_project(
+            task_id=g.task_id, project_id=project.id, project_name=project.name
+        )
+        w.workflow_output(api, project.id)
 
     if failed_cnt > 0:
         # Do not report success when videos were lost on the way; what was imported
         # stays in the project.
-        msg = (
-            f"{failed_cnt} of {planned_cnt} videos failed to import (see warnings above). "
-            f"{uploaded_cnt} videos were imported into project '{project.name}' "
-            f"(id: {project.id})."
-        )
+        msg = f"{failed_cnt} of {planned_cnt} videos failed to import (see warnings above)."
+        if project_removed:
+            msg += (
+                f" Nothing was imported, so the empty project '{project.name}' "
+                "created by this run was removed."
+            )
+        else:
+            msg += (
+                f" {uploaded_cnt} videos were imported into project '{project.name}' "
+                f"(id: {project.id})."
+            )
         if source_kept:
             msg += " The source in Team Files was kept."
         raise RuntimeError(msg)
